@@ -42,7 +42,7 @@ uint8_t* get_hole(Board* board, int idx) {
 
 static uint32_t board_sum(Board* board) {
     uint32_t total = 0;
-    for (size_t i = 0; i < 13; i++)
+    for (size_t i = 0; i < 14; i++)
         total += (uint32_t)(*get_hole(board, i));
     return total;
 }
@@ -167,12 +167,12 @@ int make_a_turn(Board* board, uint32_t idx, Player player_id) {
     
     // if the last ball landed in the player's home, the player gets
     // to make another turn
-    if ((idx == PLAYER1_HOME && player_id == 0) ||
-        (idx == PLAYER2_HOME && player_id == 1)) 
+    if ((hole == &(board->p1_home) && player_id == 0) ||
+        (hole == &(board->p2_home) && player_id == 1)) 
     {
         return REPEAT;
     }
-    if ((*hole)==1) {
+    if (*hole==1) {
         return COMPLETE; 
     } else if ((*hole)>1) {
         return make_a_turn(board, idx/*%BOARD_BYTESIZE*/, player_id);
@@ -267,6 +267,13 @@ int main() {
         6, 6, 6, 6, 6, 6, // player1's holes
         0                 // player1's home
     };
+    // Board _board = {
+    //     3, 3, 1, 2, 1, 4,
+    //     12,
+    //     2, 0, 5, 16, 4, 1,
+    //     18
+    // };
+
     Board* board = &_board;
     Player winner = game_loop(board);
     return 0;
