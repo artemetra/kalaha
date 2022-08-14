@@ -5,14 +5,6 @@
 
 #include "colors.h"
 
-#define _KALAHA_DEBUG
-#define noop
-#ifdef _KALAHA_DEBUG
-    #define DEBUG printf
-#else
-    #define DEBUG noop
-#endif
-
 /* Player id, 0 or 1 */
 typedef bool Player;
 
@@ -38,13 +30,6 @@ typedef struct Board {
 */
 uint8_t* get_hole(Board* board, int idx) {
     return ((uint8_t*)board + (idx%BOARD_BYTESIZE));
-}
-
-static uint32_t board_sum(Board* board) {
-    uint32_t total = 0;
-    for (size_t i = 0; i < 14; i++)
-        total += (uint32_t)(*get_hole(board, i));
-    return total;
 }
 
 // TODO: refactor whatever this is
@@ -156,15 +141,12 @@ int make_a_turn(Board* board, uint32_t idx, Player player_id) {
         // if the current hole is not current player's home, skip it
         if ((hole == &(board->p1_home) && player_id == 1) ||
             (hole == &(board->p2_home) && player_id == 0)) {
-            DEBUG("         skipping player's home, hole==%d, &(board->p1_home)==%d; &(board->p2_home)==%d\n", (uintptr_t)hole, (uintptr_t)&(board->p1_home), (uintptr_t)&(board->p2_home));
             continue;
         }
         (*hole)++;
         in_hand--;
         //DEBUG("in_hand: %d, idx: %d, get_hole: %d;\n", in_hand, idx, *hole);
     }
-    DEBUG("p1_home=%d; p2_home=%d; board_sum=%d; idx=%d;\n", board->p1_home, board->p2_home, board_sum(board), idx);
-    
     // if the last ball landed in the player's home, the player gets
     // to make another turn
     if ((hole == &(board->p1_home) && player_id == 0) ||
@@ -180,26 +162,15 @@ int make_a_turn(Board* board, uint32_t idx, Player player_id) {
 
 }
 
-void display_current_player(Player player_id) {
-    if (player_id == 0)
-    {
-        printf("Current: Player 1\n");
-    } else {
-        printf("Current: Player 2\n");
-    }
-}
-
 /*
-    Helper function to find the sum of balls in holes.
+    Helper function to find the sum of balls in player's holes.
 */
-static uint32_t sum(uint8_t holes[6]) {
+static uint8_t sum(uint8_t holes[6]) {
     uint8_t total = 0;
     for (size_t i = 0; i < 6; i++)
         total += holes[i];
     return total;
 }
-
-
 
 /*
     Main game loop. Returns the id of the winner 0 or 1
@@ -275,12 +246,6 @@ int main() {
         6, 6, 6, 6, 6, 6, // player1's holes
         0                 // player1's home
     };
-    // Board _board = {
-    //     3, 3, 1, 2, 1, 4,
-    //     12,
-    //     2, 0, 5, 16, 4, 1,
-    //     18
-    // };
 
     Board* board = &_board;
     Player winner = game_loop(board);
