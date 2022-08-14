@@ -210,15 +210,19 @@ int game_loop(Board* board) {
     Player player2 = 1;
     Player current_player = player1;
     display_board(board);
+    uint8_t p1_holes_sum = sum(board->p1_holes);
+    uint8_t p2_holes_sum = sum(board->p2_holes);
     for (;;)
     {
         //display_current_player(current_player);
         int turn_outcome = make_a_turn(board, prompt_user(board, current_player), current_player);
+        p1_holes_sum = sum(board->p1_holes);
+        p2_holes_sum = sum(board->p2_holes);
         display_board(board);
         if (turn_outcome == COMPLETE) {
             printf("Player %d has finished their turn!\n", current_player+1);
-            if ((current_player == 0 && sum(board->p1_holes) == 0) ||
-                (current_player == 1 && sum(board->p2_holes) == 0))
+            if ((current_player == 0 && p1_holes_sum == 0) ||
+                (current_player == 1 && p2_holes_sum == 0))
             {
                 printf("Player %d doesn't have any balls left in their holes, game over\n", current_player+1);
                 break;
@@ -228,8 +232,8 @@ int game_loop(Board* board) {
         else if (turn_outcome == REPEAT)
         {
             printf("Player %d landed their last ball into their home", current_player+1);
-            if ((current_player == 0 && sum(board->p1_holes) == 0) ||
-                (current_player == 1 && sum(board->p2_holes) == 0))
+            if ((current_player == 0 && p1_holes_sum == 0) ||
+                (current_player == 1 && p2_holes_sum == 0))
             {
                 printf(", but they don't have any balls left in their holes, the game is over\n");
                 break;
@@ -240,21 +244,25 @@ int game_loop(Board* board) {
         }
     }
     
-    uint8_t p1_home = board->p1_home;
-    uint8_t p2_home = board->p2_home;
-    printf("---RESULTS---");
-    printf("Player 1 has scored %d balls in their home\n", p1_home);
-    printf("Player 2 has scored %d balls in their home\n", p2_home);
-    if (p1_home > p2_home) {
-        printf("Player 1 wins!\n");
+    uint8_t p1_score = board->p1_home + p2_holes_sum;
+    uint8_t p2_score = board->p2_home + p1_holes_sum;
+
+    printf("---RESULTS---\n");
+    printf("Player 1 has scored %d points (%d in home + %3d of other player's holes)\n", 
+            p1_score, board->p1_home, p2_holes_sum);
+    printf("Player 2 has scored %d points (%d in home + %3d of other player's holes)\n", 
+            p2_score, board->p2_home, p1_holes_sum);
+    
+    if (p1_score > p2_score) {
+        printf("Player 1 wins! Thanks for playing the game.\n");
         return player1;
     }
-    else if (p2_home > p1_home) {
-        printf("Player 2 wins!\n");
+    else if (p2_score > p1_score) {
+        printf("Player 2 wins! Thanks for playing the game.\n");
         return player2;
     }
     else {
-        printf("Draw!");
+        printf("Draw! Thanks for playing the game.");
         return -1;
     }
 }
