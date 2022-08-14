@@ -31,29 +31,37 @@ typedef struct Board {
 uint8_t* get_hole(Board* board, int idx) {
     return ((uint8_t*)board + (idx%BOARD_BYTESIZE));
 }
-
-// TODO: refactor whatever this is
+ 
 void display_board(Board* board) {
+    /*
+        |1    |2    |3    |4    |5    |6    |
+        |   6●|   6●|   6●|   6●|   6●|   6●|
+           ↑              →              ↓
+        |HOME1|                       |HOME2|
+        |   0●|                       |   0●|
+           ↑              ←              ↓
+        |6    |5    |4    |3    |2    |1    |
+        |   6●|   6●|   6●|   6●|   6●|   6●|
+    */
+
     char buf[400]; // should be enough 
     int tot = 0;
-    tot += sprintf(buf, "\n\n|");
-    for (int i = 0; i < 6; i++)
-        tot += sprintf(buf + tot, "%d    |", i + 1);
-    tot += sprintf(buf + tot, "\n|");
+    tot += sprintf(buf, "\n\n");
+    tot += sprintf(buf + tot, "|1    |2    |3    |4    |5    |6    |\n");
+    tot += sprintf(buf + tot, "|");
     for (int i = 0; i < 6; i++)
         tot += sprintf(buf + tot, " %3d%s|", *get_hole(board, i), BALL_CHAR);
     tot += sprintf(buf + tot, "\n");
+
     tot += sprintf(buf + tot, "   ↑              →              ↓   \n");
-    tot += sprintf(buf + tot, "|HOME1|                       |HOME2|");
-    tot += sprintf(buf + tot, "\n");
+    tot += sprintf(buf + tot, "|HOME1|                       |HOME2|\n");
     tot += sprintf(buf + tot, "| %3d%s|                       | %3d%s|\n",
                    board->p1_home, BALL_CHAR, board->p2_home, BALL_CHAR);
     tot += sprintf(buf + tot, "   ↑              ←              ↓   \n");
+
+    tot += sprintf(buf + tot, "|6    |5    |4    |3    |2    |1    |\n");
     tot += sprintf(buf + tot, "|");
-    for (int i = 6; i > 0; i--)
-        tot += sprintf(buf + tot, "%d    |", i);
-    tot += sprintf(buf + tot, "\n|");
-    for (int i = PLAYER1_HOME-1; i > PLAYER2_HOME; i--)
+    for (int i = 12; i > 6; i--)
         tot += sprintf(buf + tot, " %3d%s|", *get_hole(board, i), BALL_CHAR);
 
     printf("%s\n", buf);
