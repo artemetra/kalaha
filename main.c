@@ -28,7 +28,7 @@ typedef struct Board {
     7-12: player1's holes 1-6 (right to left/clockwise)
     13: player1's home
 */
-uint8_t* get_hole(Board* board, int idx) {
+uint8_t* get_hole(Board* board, uint32_t idx) {
     return ((uint8_t*)board + (idx%BOARD_BYTESIZE));
 }
  
@@ -49,7 +49,7 @@ void display_board(Board* board) {
     tot += sprintf(buf, "\n\n");
     tot += sprintf(buf + tot, "|1    |2    |3    |4    |5    |6    |\n");
     tot += sprintf(buf + tot, "|");
-    for (int i = 0; i < 6; i++)
+    for (uint32_t i = 0; i < 6; i++)
         tot += sprintf(buf + tot, " %3d%s|", *get_hole(board, i), BALL_CHAR);
     tot += sprintf(buf + tot, "\n");
 
@@ -107,7 +107,7 @@ static int get_line(char* prmpt, char* buff, size_t sz) {
 /*
     Prompts a player to choose a hole.
 */
-int prompt_user(Board* board, Player player_id) {
+uint32_t prompt_user(Board* board, Player player_id) {
     char buffer[3];  // one digit, \n and \0
     char query[39];
     sprintf(query, "Player %d, choose hole to play (1-6): ", player_id+1);
@@ -117,7 +117,7 @@ int prompt_user(Board* board, Player player_id) {
             // includes EOF and failure to match (0)
             if (sscanf(buffer, "%d", &user_input) > 0) {
                 if (user_input >= 1 && user_input <= 6) {
-                    int converted = convert_index(user_input, player_id);
+                    uint32_t converted = convert_index(user_input, player_id);
                     if (*get_hole(board, converted) > 0)
                         return converted;
                     goto empty;
@@ -135,7 +135,7 @@ int prompt_user(Board* board, Player player_id) {
 
 #define COMPLETE 0
 #define REPEAT 1
-int make_a_turn(Board* board, uint32_t idx, Player player_id) {
+bool make_a_turn(Board* board, uint32_t idx, Player player_id) {
     uint8_t* chosen_hole = get_hole(board, idx);
     uint8_t in_hand = *chosen_hole;
     *chosen_hole = 0;
@@ -164,7 +164,7 @@ int make_a_turn(Board* board, uint32_t idx, Player player_id) {
     }
     if (*hole==1) {
         return COMPLETE; 
-    } else if ((*hole)>1) {
+    } else { // *hole > 1
         return make_a_turn(board, idx/*%BOARD_BYTESIZE*/, player_id);
     }
 
@@ -194,7 +194,7 @@ int game_loop(Board* board) {
     for (;;)
     {
         //display_current_player(current_player);
-        int turn_outcome = make_a_turn(board, prompt_user(board, current_player), current_player);
+        bool turn_outcome = make_a_turn(board, prompt_user(board, current_player), current_player);
         p1_holes_sum = sum(board->p1_holes);
         p2_holes_sum = sum(board->p2_holes);
         display_board(board);
@@ -203,7 +203,7 @@ int game_loop(Board* board) {
             if ((current_player == 0 && p1_holes_sum == 0) ||
                 (current_player == 1 && p2_holes_sum == 0))
             {
-                printf("Player %d doesn't have any balls left in their holes, game over\n", current_player+1);
+                printf("Player %d's holes are empty, game over\n", current_player+1);
                 break;
             }
             current_player = !current_player;
@@ -214,7 +214,7 @@ int game_loop(Board* board) {
             if ((current_player == 0 && p1_holes_sum == 0) ||
                 (current_player == 1 && p2_holes_sum == 0))
             {
-                printf(", but they don't have any balls left in their holes, the game is over\n");
+                printf(", but their holes are empty, the game is over\n");
                 break;
             } else {
                 printf("! They get an extra turn.\n");
@@ -227,9 +227,9 @@ int game_loop(Board* board) {
     uint8_t p2_score = board->p2_home + p1_holes_sum;
 
     printf("---RESULTS---\n");
-    printf("Player 1 has scored %d points (%d in home + %3d of other player's holes)\n", 
+    printf("Player 1 has scored %d points (%d in home + %2d of other player's holes)\n", 
             p1_score, board->p1_home, p2_holes_sum);
-    printf("Player 2 has scored %d points (%d in home + %3d of other player's holes)\n", 
+    printf("Player 2 has scored %d points (%d in home + %2d of other player's holes)\n", 
             p2_score, board->p2_home, p1_holes_sum);
     
     if (p1_score > p2_score) {
@@ -241,7 +241,7 @@ int game_loop(Board* board) {
         return player2;
     }
     else {
-        printf("Draw! Thanks for playing the game.");
+        printf("Draw! Thanks for playing the game.\n");
         return -1;
     }
 }
@@ -249,14 +249,14 @@ int game_loop(Board* board) {
 
 int main() {
     Board _board = {
-        6, 6, 6, 6, 6, 6, // player2's holes
-        0,                // player2's home
-        6, 6, 6, 6, 6, 6, // player1's holes
-        0                 // player1's home
+       {6, 6, 6, 6, 6, 6}, // player2's holes
+        0,                 // player2's home
+       {6, 6, 6, 6, 6, 6}, // player1's holes
+        0                  // player1's home
     };
 
     Board* board = &_board;
-    Player winner = game_loop(board);
+    game_loop(board);
     return 0;
 }
 
