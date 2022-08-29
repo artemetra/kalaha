@@ -1,3 +1,6 @@
+#ifndef __KALAHA_COLORS_H
+#define __KALAHA_COLORS_H
+
 /*
  * This is free and unencumbered software released into the public domain.
  *
@@ -76,3 +79,5 @@
 
 //Reset
 #define COLOR_RESET "\e[0m"
+
+#endif /* __KALAHA_COLORS_H */

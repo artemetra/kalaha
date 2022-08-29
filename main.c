@@ -4,75 +4,7 @@
 #include <string.h>
 
 #include "colors.h"
-
-/* Player id, 0 or 1 */
-typedef bool Player;
-
-const int PLAYER1_HOME = 13;
-const int PLAYER2_HOME = 6;
-const int BOARD_BYTESIZE = 14;
-const int MAX_INDEX = 14;
-const char BALL_CHAR[] = "\u25CF";
-
-typedef struct Board {
-    uint8_t p2_holes[6];
-    uint8_t p2_home;
-    uint8_t p1_holes[6];  // stored in right to left order
-    uint8_t p1_home;
-} Board;
-
-/*
-    Retrieves a pointer to a hole by index. The indexing is defined as follows:
-    0-5: player2's holes 1-6
-    6: player2's home
-    7-12: player1's holes 1-6 (right to left/clockwise)
-    13: player1's home
-*/
-uint8_t* get_hole(Board* board, uint32_t idx) {
-    return ((uint8_t*)board + (idx%BOARD_BYTESIZE));
-}
- 
-void display_board(Board* board) {
-    /*
-        |1    |2    |3    |4    |5    |6    |
-        |   6●|   6●|   6●|   6●|   6●|   6●|
-           ↑              →              ↓
-        |HOME1|                       |HOME2|
-        |   0●|                       |   0●|
-           ↑              ←              ↓
-        |6    |5    |4    |3    |2    |1    |
-        |   6●|   6●|   6●|   6●|   6●|   6●|
-    */
-
-    char buf[400]; // should be enough 
-    int tot = 0;
-    tot += sprintf(buf, "\n\n");
-    tot += sprintf(buf + tot, "|1    |2    |3    |4    |5    |6    |\n");
-    tot += sprintf(buf + tot, "|");
-    for (uint32_t i = 0; i < 6; i++)
-        tot += sprintf(buf + tot, " %3d%s|", *get_hole(board, i), BALL_CHAR);
-    tot += sprintf(buf + tot, "\n");
-
-    tot += sprintf(buf + tot, "   ↑              →              ↓   \n");
-    tot += sprintf(buf + tot, "|HOME1|                       |HOME2|\n");
-    tot += sprintf(buf + tot, "| %3d%s|                       | %3d%s|\n",
-                   board->p1_home, BALL_CHAR, board->p2_home, BALL_CHAR);
-    tot += sprintf(buf + tot, "   ↑              ←              ↓   \n");
-
-    tot += sprintf(buf + tot, "|6    |5    |4    |3    |2    |1    |\n");
-    tot += sprintf(buf + tot, "|");
-    for (int i = 12; i > 6; i--)
-        tot += sprintf(buf + tot, " %3d%s|", *get_hole(board, i), BALL_CHAR);
-
-    printf("%s\n", buf);
-}
-
-int convert_index(int idx, Player player_id) {
-    if (player_id) 
-        return idx - 1;
-    else
-        return idx + 6;
-}
+#include "game.h"
 
 #define OK 0
 #define NO_INPUT 1
@@ -153,7 +85,6 @@ bool make_a_turn(Board* board, uint32_t idx, Player player_id) {
         }
         (*hole)++;
         in_hand--;
-        //DEBUG("in_hand: %d, idx: %d, get_hole: %d;\n", in_hand, idx, *hole);
     }
     // if the last ball landed in the player's home, the player gets
     // to make another turn
@@ -193,7 +124,6 @@ int game_loop(Board* board) {
     uint8_t p2_holes_sum = sum(board->p2_holes);
     for (;;)
     {
-        //display_current_player(current_player);
         bool turn_outcome = make_a_turn(board, prompt_user(board, current_player), current_player);
         p1_holes_sum = sum(board->p1_holes);
         p2_holes_sum = sum(board->p2_holes);

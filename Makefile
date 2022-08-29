@@ -1,6 +1,24 @@
-default:
-	mkdir -p result	
-	clang -Wall -Wextra main.c -o result/game
+CC = clang
+CFLAGS = -Wall -Wextra -Wunused
+
+all: game
+
+OBJECTS = main.o game.o solver.o
+
+game: $(OBJECTS)
+	$(CC) $(CFLAGS) $(OBJECTS) -o game.out
+
+main.o: main.c
+	$(CC) $(CFLAGS) -c main.c
+
+game.o: game.c
+	$(CC) $(CFLAGS) -c game.c
+
+solver.o: solver.c
+	$(CC) $(CFLAGS) -c solver.c
 
 clean:
-	rm -rf result
+	rm -f game.out *.o
+
+.DEFAULT: all
+
