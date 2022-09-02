@@ -9,7 +9,7 @@
 /* Player id, 0 or 1 */
 typedef bool Player;
 
-extern const int PLAYER1_HOME, PLAYER2_HOME, BOARD_BYTESIZE, MAX_INDEX;
+extern const int PLAYER1_HOME, PLAYER2_HOME, BOARD_BYTESIZE;
 extern const char BALL_CHAR[];
 
 typedef struct Board {
@@ -18,6 +18,8 @@ typedef struct Board {
     uint8_t p1_holes[6];  // stored in right to left order
     uint8_t p1_home;
 } Board;
+
+typedef enum TurnOutcome { COMPLETE, REPEAT } TurnOutcome;
 
 /*
     Retrieves a pointer to a hole by index. The indexing is defined as follows:
@@ -30,6 +32,23 @@ uint8_t* get_hole(Board* board, uint32_t idx);
 
 void display_board(Board* board);
 
+/*
+    Converts index entered from the user into an internal one
+*/
+
 int convert_index(int idx, Player player_id);
+
+/*
+    Helper function to find the sum of balls in player's holes.
+*/
+uint8_t sum(uint8_t holes[6]);
+
+/*
+    Makes a turn.
+    Returns COMPLETE if the turn ended normally,
+    Returns REPEAT if the player got an extra turn.
+*/
+
+TurnOutcome make_a_turn(Board* board, uint32_t idx, Player player_id);
 
 #endif /* __KALAHA_GAME_H */
