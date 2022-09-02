@@ -3,7 +3,7 @@ CFLAGS = -Wall -Wextra -Wunused
 
 all: game
 
-OBJECTS = main.o game.o solver.o
+OBJECTS = game.o solver.o main.o
 
 game: $(OBJECTS)
 	$(CC) $(CFLAGS) $(OBJECTS) -o game.out
@@ -19,6 +19,9 @@ solver.o: solver.c
 
 clean:
 	rm -f game.out *.o
+
+fmt:
+	clang-format -i *.c *.h
 
 .DEFAULT: all
 
