@@ -9,8 +9,8 @@
 /* Player id, 0 or 1 */
 typedef bool Player;
 
-#define PLAYER1 0
-#define PLAYER2 1
+#define P1 0
+#define P2 1
 
 extern const int PLAYER1_HOME, PLAYER2_HOME, BOARD_BYTESIZE;
 extern const char BALL_CHAR[];

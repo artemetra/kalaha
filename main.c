@@ -1,8 +1,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "colors.h"
 #include "game.h"
@@ -74,9 +74,7 @@ uint32_t prompt_user(Board* board, Player player_id) {
     -1 is the draw outcome
 */
 int game_loop(Board* board) {
-    Player player1 = 0;
-    Player player2 = 1;
-    Player current_player = player1;
+    Player current_player = P1;
     display_board(board);
     uint8_t p1_holes_sum;
     uint8_t p2_holes_sum;
@@ -88,8 +86,8 @@ int game_loop(Board* board) {
         display_board(board);
         if (turn_outcome == COMPLETE) {
             printf("Player %d has finished their turn!\n", current_player + 1);
-            if ((current_player == 0 && p1_holes_sum == 0) ||
-                (current_player == 1 && p2_holes_sum == 0)) {
+            if ((current_player == P1 && p1_holes_sum == 0) ||
+                (current_player == P2 && p2_holes_sum == 0)) {
                 printf("Player %d's holes are empty, game over\n", current_player + 1);
                 break;
             }
@@ -97,8 +95,8 @@ int game_loop(Board* board) {
         } else if (turn_outcome == REPEAT) {
             printf("Player %d landed their last ball into their home",
                    current_player + 1);
-            if ((current_player == 0 && p1_holes_sum == 0) ||
-                (current_player == 1 && p2_holes_sum == 0)) {
+            if ((current_player == P1 && p1_holes_sum == 0) ||
+                (current_player == P2 && p2_holes_sum == 0)) {
                 printf(", but their holes are empty, the game is over\n");
                 break;
             } else {
@@ -122,25 +120,14 @@ int game_loop(Board* board) {
 
     if (p1_score > p2_score) {
         printf("Player 1 wins! Thanks for playing the game.\n");
-        return player1;
+        return P1;
     } else if (p2_score > p1_score) {
         printf("Player 2 wins! Thanks for playing the game.\n");
-        return player2;
+        return P2;
     } else {
         printf("Draw! Thanks for playing the game.\n");
         return -1;
     }
-}
-
-// for solver, unusued?
-int alt_game_loop(Board* board) {
-    StateNode* statenode = create_statenode(*board, 1);
-    printf("statenode:\n");
-    for (size_t i = 0; i < sizeof(statenode); i++) {
-        printf("%02x ", ((uint8_t*)&statenode)[i]);
-    }
-    printf("\n");
-    return 0;
 }
 
 int main() {
@@ -166,16 +153,7 @@ int main() {
         {7, 1, 7, 0, 0, 7},  // player1's holes
         1                    // player1's home
     };
-    Board* board = &_alt_board;
-    // game_loop(board);
-    TurnOutcome* tos = malloc(6*sizeof(TurnOutcome));
-    uint8_t holes[6] = {1,2,3,4,5,6};
-    try_plays(board, PLAYER1, holes, 6, tos);
-    for (int i=0; i<6; i++) {
-        char buf[10];
-        outcome_to_str(tos[i], buf, 10);
-        printf("%s ", buf);
-    }
-    printf("\n");
+    Board* board = &_board;
+    //create_statenode(_board, P1, 10);
     return 0;
 }

@@ -1,8 +1,8 @@
+#include <assert.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <assert.h>
 
 #include "game.h"
 
@@ -12,6 +12,9 @@ const int BOARD_BYTESIZE = 14;
 const char BALL_CHAR[] = "\u25CF";
 
 uint8_t* get_hole(Board* board, uint32_t idx) {
+    if (idx < 0 || (idx % BOARD_BYTESIZE) > 13) {
+        return NULL;
+    }
     return ((uint8_t*)board + (idx % BOARD_BYTESIZE));
 }
 
@@ -59,9 +62,10 @@ int convert_index(int idx, Player player_id) {
 
 TurnOutcome make_a_turn(Board* board, uint32_t idx, Player player_id) {
     uint8_t* chosen_hole = get_hole(board, idx);
-    if (*chosen_hole == 0) {
+    if (chosen_hole != NULL && *chosen_hole == 0) {
         return INVALID;
     }
+    assert(chosen_hole);
     uint8_t in_hand = *chosen_hole;
     *chosen_hole = 0;
 
@@ -101,19 +105,18 @@ uint8_t sum(uint8_t holes[6]) {
 }
 
 void outcome_to_str(TurnOutcome outcome, char* output, size_t size) {
-    switch (outcome)
-    {
-    case COMPLETE:
-        strlcpy(output, "COMPLETE", size);
-        break;
-    case REPEAT:
-        strlcpy(output, "REPEAT", size);
-        break;
-    case INVALID:
-        strlcpy(output, "INVALID", size);
-        break;
-    default:
-        strlcpy(output, "wut?", size);
-        break;
+    switch (outcome) {
+        case COMPLETE:
+            strlcpy(output, "COMPLETE", size);
+            break;
+        case REPEAT:
+            strlcpy(output, "REPEAT", size);
+            break;
+        case INVALID:
+            strlcpy(output, "INVALID", size);
+            break;
+        default:
+            strlcpy(output, "wut?", size);
+            break;
     }
 }
