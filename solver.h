@@ -18,21 +18,12 @@ typedef struct StateNode {
     struct StateNode* paths[6];
 } StateNode;
 
-// probably isn't needed
-/*
-typedef struct StateTree {
-        Board initial_board;
-        struct StateNode paths[6];
-} StateTree;
-*/
+StateNode create_statenode(Board board, Player player_id, uint32_t level);
 
-StateNode* create_statenode(Board board, uint32_t level);
-
-void try_plays(
-    Board* board,
-    Player player_id,
-    uint8_t* holes,
-    uint8_t nholes,
-    TurnOutcome* output);
+void try_plays(Board* board,
+               Player player_id,
+               uint8_t* holes,
+               uint8_t nholes,
+               TurnOutcome* output);
 
 #endif  // KALAHA_SOLVER_H_

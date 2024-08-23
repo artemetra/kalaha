@@ -13,51 +13,53 @@ void grow_statetree(Board board) {
 
 void minimax(Board board, uint32_t depth) {}
 
-StateNode* create_statenode(Board board, uint32_t level) {
-    // printf("%u\n", level);
-    // if (level > 10) { return NULL; }
-    //  using calloc here will set is_last field to false
-    //  and all of the pointers to NULL
-    StateNode* statenode = (StateNode*)calloc(1, sizeof(StateNode));
-    memcpy(statenode, &board, sizeof(Board));
-
-    for (uint8_t i = 0; i < 6; i++) {
-        if (board.p2_holes[i] > 0) {
-            Board* new_board = (Board*)malloc(sizeof(Board));
-            memcpy(new_board, &board, sizeof(Board));
-
-            TurnOutcome outcome = make_a_turn(new_board, i, 1);
-            // print_outcome(outcome);
-            printf("br\n");
-            if (outcome == COMPLETE) {
-                StateNode* sub_statenode = (StateNode*)calloc(1, sizeof(StateNode));
-                sub_statenode->is_last = true;
-                sub_statenode->board_state = *new_board;
-                statenode->paths[i] = sub_statenode;
-
-            } else if (outcome == REPEAT) {
-                statenode->paths[i] = create_statenode(*new_board, level + 1);
-            } else {
-                printf("wut?");
-            }
-        }
+StateNode create_statenode(Board board, Player player_id, uint32_t level) {
+    uint8_t init_home;
+    if (player_id == P1) {
+        init_home = board.p1_home;
+    }
+    if (player_id == P2) {
+        init_home = board.p2_home;
     }
 
-    return statenode;
+    StateNode* paths[6] = {NULL};
+    StateNode root = {
+        board,
+        false,
+        paths,
+    };
+    for (size_t i = 1; i <= 6; i++) {
+        Board board_copy;
+        memcpy(&board_copy, &board, sizeof(Board));
+        int idx = convert_index(i, player_id);
+        TurnOutcome out = make_a_turn(&board_copy, idx, player_id);
+        if (player_id == P1) {
+            uint8_t bruh = board_copy.p1_home - init_home;
+            printf("%d", bruh);
+        }
+        if (player_id == P2) {
+            printf("%d", board_copy.p2_home - init_home);
+        }
+        if (out == COMPLETE) {
+            printf("C ");
+        } else if (out == REPEAT) {
+            printf("R ");
+        }
+    }
+    printf("\n");
+    return root;
 }
 
 // TODO
 void free_statenode(StateNode* statenode) {}
 
 // output needs to be `nholes*sizeof(TurnOutcome)`
-void try_plays(
-    Board* board,
-    Player player_id,
-    uint8_t* holes,
-    uint8_t nholes,
-    TurnOutcome* output)
-{
-    for (size_t i=0; i<nholes; i++) {
+void try_plays(Board* board,
+               Player player_id,
+               uint8_t* holes,
+               uint8_t nholes,
+               TurnOutcome* output) {
+    for (size_t i = 0; i < nholes; i++) {
         Board board_copy;
         memcpy(&board_copy, board, sizeof(Board));
         int idx = convert_index(holes[i], player_id);
