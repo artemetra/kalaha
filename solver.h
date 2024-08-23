@@ -19,6 +19,7 @@ typedef struct StateNode {
 
 StateNode create_statenode(Board board, Player player_id);
 void grow_statenodes(StateNode* root, Player player_id, uint32_t level);
+void free_statenodes(StateNode* node, uint64_t* nodecount);
 
 void try_plays(Board* board,
                Player player_id,

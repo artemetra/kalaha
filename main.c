@@ -84,7 +84,7 @@ int game_loop(Board* board) {
     display_board(board);
     uint8_t p1_holes_sum;
     uint8_t p2_holes_sum;
-    uint32_t turn_counter = 0; // for stats
+    uint32_t turn_counter = 0;  // for stats
     for (;;) {
         TurnOutcome turn_outcome =
             make_a_turn(board, prompt_user(board, current_player), current_player);
@@ -116,7 +116,7 @@ int game_loop(Board* board) {
     uint8_t p1_score = board->p1_home + p2_holes_sum;
     uint8_t p2_score = board->p2_home + p1_holes_sum;
 
-    //fprintf(stderr, "%d\n", turn_counter);
+    // fprintf(stderr, "%d\n", turn_counter);
 
     printf("\n---RESULTS---\n");
     printf(
@@ -142,9 +142,9 @@ int game_loop(Board* board) {
 
 int main() {
     Board _board = {
-        {6, 6, 6, 6, 6, 6},  // player2's holes
+        {0, 1, 0, 2, 0, 0},  // player2's holes
         0,                   // player2's home
-        {6, 6, 6, 6, 6, 6},  // player1's holes
+        {0, 1, 0, 1, 0, 0},  // player1's holes
         0                    // player1's home
     };
     /*
@@ -167,9 +167,13 @@ int main() {
     // create_statenode(_board, P1, 0);
     srand(time(NULL) + 1);
     // int result = game_loop(board);
-    //fprintf(stderr, "%d\n", result);
+    // fprintf(stderr, "%d\n", result);
 
-    StateNode tree = create_statenode(_board, P1);
+    StateNode _tree = create_statenode(_board, P2);
+    StateNode* tree = &_tree;
+    printf("bruh..");
+    uint64_t nodecount = 0;
+    free_statenodes(tree, &nodecount);
     
     return 0;
 }
