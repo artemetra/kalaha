@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 
 #include "game.h"
 
@@ -84,6 +85,7 @@ TurnOutcome make_a_turn(Board* board, uint32_t idx, Player player_id) {
         (hole == &(board->p2_home) && player_id == 1)) {
         return REPEAT;
     }
+    assert(hole);
     if (*hole == 1) {
         return COMPLETE;
     } else {  // *hole > 1
@@ -98,16 +100,20 @@ uint8_t sum(uint8_t holes[6]) {
     return total;
 }
 
-char outcome_to_str(TurnOutcome outcome) {
+void outcome_to_str(TurnOutcome outcome, char* output, size_t size) {
     switch (outcome)
     {
     case COMPLETE:
-        return "COMPLETE";
+        strlcpy(output, "COMPLETE", size);
+        break;
     case REPEAT:
-        return "REPEAT";
+        strlcpy(output, "REPEAT", size);
+        break;
     case INVALID:
-        return "INVALID";
+        strlcpy(output, "INVALID", size);
+        break;
     default:
-        return "wut?";
+        strlcpy(output, "wut?", size);
+        break;
     }
 }

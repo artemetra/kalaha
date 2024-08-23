@@ -140,6 +140,7 @@ int alt_game_loop(Board* board) {
         printf("%02x ", ((uint8_t*)&statenode)[i]);
     }
     printf("\n");
+    return 0;
 }
 
 int main() {
@@ -171,7 +172,9 @@ int main() {
     uint8_t holes[6] = {1,2,3,4,5,6};
     try_plays(board, PLAYER1, holes, 6, tos);
     for (int i=0; i<6; i++) {
-        printf("%s ", outcome_to_str(tos[i]));
+        char buf[10];
+        outcome_to_str(tos[i], buf, 10);
+        printf("%s ", buf);
     }
     printf("\n");
     return 0;

@@ -5,13 +5,13 @@
 #include "game.h"
 #include "solver.h"
 
-StateNode grow_statetree(Board board) {
+void grow_statetree(Board board) {
     // uint8_t holes[6] = board.p2_holes;
 }
 
 // TODO: get rid of all of this shit and write a version of a minimax algorithm
 
-StateNode* minimax(Board board, uint32_t depth) {}
+void minimax(Board board, uint32_t depth) {}
 
 StateNode* create_statenode(Board board, uint32_t level) {
     // printf("%u\n", level);
