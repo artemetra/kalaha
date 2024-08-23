@@ -5,49 +5,48 @@
 #include "game.h"
 #include "solver.h"
 
-void grow_statetree(Board board) {
-    // uint8_t holes[6] = board.p2_holes;
-}
+const uint32_t MAX_LEVEL = 100;
 
-// TODO: get rid of all of this shit and write a version of a minimax algorithm
-
-void minimax(Board board, uint32_t depth) {}
-
-StateNode create_statenode(Board board, Player player_id, uint32_t level) {
-    uint8_t init_home;
-    if (player_id == P1) {
-        init_home = board.p1_home;
-    }
-    if (player_id == P2) {
-        init_home = board.p2_home;
-    }
-
-    StateNode* paths[6] = {NULL};
+StateNode create_statenode(Board board, Player player_id) {
     StateNode root = {
         board,
-        false,
-        paths,
+        {NULL},
     };
-    for (size_t i = 1; i <= 6; i++) {
+    grow_statenodes(&root, player_id, 0);
+}
+
+void grow_statenodes(StateNode* root, Player player_id, uint32_t level) {
+    if (level >= MAX_LEVEL) {
+        return;
+    }
+    for (int i = 1; i <= 6; i++) {
+        // Create a deep copy of the board state
         Board board_copy;
-        memcpy(&board_copy, &board, sizeof(Board));
+        memcpy(&board_copy, &root->board_state, sizeof(Board));
+        
+        // Convert move and make a turn
         int idx = convert_index(i, player_id);
         TurnOutcome out = make_a_turn(&board_copy, idx, player_id);
-        if (player_id == P1) {
-            uint8_t bruh = board_copy.p1_home - init_home;
-            printf("%d", bruh);
+
+        // Allocate and initialize the child node
+        StateNode* child = malloc(sizeof(StateNode));
+        if (!child) {
+            // Handle memory allocation failure if necessary
+            exit(EXIT_FAILURE);
         }
-        if (player_id == P2) {
-            printf("%d", board_copy.p2_home - init_home);
+        *child = (StateNode){
+            .board_state = board_copy,
+            .paths = {NULL}  // Initialize paths to NULL
+        };
+
+        // Recursive call based on the outcome
+        if (out == REPEAT) {
+            grow_statenodes(child, player_id, level + 1);
         }
-        if (out == COMPLETE) {
-            printf("C ");
-        } else if (out == REPEAT) {
-            printf("R ");
-        }
+
+        // Store the child node in the paths array
+        root->paths[i - 1] = child;
     }
-    printf("\n");
-    return root;
 }
 
 // TODO

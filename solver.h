@@ -14,11 +14,11 @@
 */
 typedef struct StateNode {
     Board board_state;
-    bool is_last;
     struct StateNode* paths[6];
 } StateNode;
 
-StateNode create_statenode(Board board, Player player_id, uint32_t level);
+StateNode create_statenode(Board board, Player player_id);
+void grow_statenodes(StateNode* root, Player player_id, uint32_t level);
 
 void try_plays(Board* board,
                Player player_id,

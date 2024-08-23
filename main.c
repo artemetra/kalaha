@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "colors.h"
 #include "game.h"
@@ -47,7 +48,12 @@ uint32_t prompt_user(Board* board, Player player_id) {
     char query[39];
     sprintf(query, "Player %d, choose hole to play (1-6): ", player_id + 1);
     for (;;) {
-        if (!get_line(query, buffer, 4)) {
+        int err = get_line(query, buffer, 4);
+        // int rand_input = (arc4random() % 6) + 1;
+        // printf("%d\n", rand_input);
+        // sprintf(buffer, "%d\n", rand_input);
+        // int err = 0;
+        if (!err) {
             int user_input;
             // includes EOF and failure to match (0)
             if (sscanf(buffer, "%d", &user_input) > 0) {
@@ -78,9 +84,11 @@ int game_loop(Board* board) {
     display_board(board);
     uint8_t p1_holes_sum;
     uint8_t p2_holes_sum;
+    uint32_t turn_counter = 0; // for stats
     for (;;) {
         TurnOutcome turn_outcome =
             make_a_turn(board, prompt_user(board, current_player), current_player);
+        turn_counter++;
         p1_holes_sum = sum(board->p1_holes);
         p2_holes_sum = sum(board->p2_holes);
         display_board(board);
@@ -107,6 +115,8 @@ int game_loop(Board* board) {
 
     uint8_t p1_score = board->p1_home + p2_holes_sum;
     uint8_t p2_score = board->p2_home + p1_holes_sum;
+
+    //fprintf(stderr, "%d\n", turn_counter);
 
     printf("\n---RESULTS---\n");
     printf(
@@ -154,6 +164,12 @@ int main() {
         1                    // player1's home
     };
     Board* board = &_board;
-    //create_statenode(_board, P1, 10);
+    // create_statenode(_board, P1, 0);
+    srand(time(NULL) + 1);
+    // int result = game_loop(board);
+    //fprintf(stderr, "%d\n", result);
+
+    StateNode tree = create_statenode(_board, P1);
+    
     return 0;
 }

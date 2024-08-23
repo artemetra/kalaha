@@ -11,6 +11,8 @@ const int PLAYER2_HOME = 6;
 const int BOARD_BYTESIZE = 14;
 const char BALL_CHAR[] = "\u25CF";
 
+// Returns pointer to the contents of the hole given by `idx`, which is got from
+// `convert_index`. Returns `NULL` if `idx` is invalid, woopsie.
 uint8_t* get_hole(Board* board, uint32_t idx) {
     if (idx < 0 || (idx % BOARD_BYTESIZE) > 13) {
         return NULL;
