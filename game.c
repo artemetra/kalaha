@@ -8,7 +8,6 @@
 const int PLAYER1_HOME = 13;
 const int PLAYER2_HOME = 6;
 const int BOARD_BYTESIZE = 14;
-const int MAX_INDEX = 14;
 const char BALL_CHAR[] = "\u25CF";
 
 uint8_t* get_hole(Board* board, uint32_t idx) {
@@ -59,6 +58,9 @@ int convert_index(int idx, Player player_id) {
 
 TurnOutcome make_a_turn(Board* board, uint32_t idx, Player player_id) {
     uint8_t* chosen_hole = get_hole(board, idx);
+    if (*chosen_hole == 0) {
+        return INVALID;
+    }
     uint8_t in_hand = *chosen_hole;
     *chosen_hole = 0;
 
@@ -94,4 +96,18 @@ uint8_t sum(uint8_t holes[6]) {
     for (size_t i = 0; i < 6; i++)
         total += holes[i];
     return total;
+}
+
+char outcome_to_str(TurnOutcome outcome) {
+    switch (outcome)
+    {
+    case COMPLETE:
+        return "COMPLETE";
+    case REPEAT:
+        return "REPEAT";
+    case INVALID:
+        return "INVALID";
+    default:
+        return "wut?";
+    }
 }

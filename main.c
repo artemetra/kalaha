@@ -2,9 +2,11 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "colors.h"
 #include "game.h"
+#include "solver.h"
 
 #define OK 0
 #define NO_INPUT 1
@@ -76,10 +78,10 @@ int game_loop(Board* board) {
     Player player2 = 1;
     Player current_player = player1;
     display_board(board);
-    uint8_t p1_holes_sum = sum(board->p1_holes);
-    uint8_t p2_holes_sum = sum(board->p2_holes);
+    uint8_t p1_holes_sum;
+    uint8_t p2_holes_sum;
     for (;;) {
-        bool turn_outcome =
+        TurnOutcome turn_outcome =
             make_a_turn(board, prompt_user(board, current_player), current_player);
         p1_holes_sum = sum(board->p1_holes);
         p2_holes_sum = sum(board->p2_holes);
@@ -108,13 +110,13 @@ int game_loop(Board* board) {
     uint8_t p1_score = board->p1_home + p2_holes_sum;
     uint8_t p2_score = board->p2_home + p1_holes_sum;
 
-    printf("---RESULTS---\n");
+    printf("\n---RESULTS---\n");
     printf(
-        "Player 1 has scored %d points (%d in home + %2d of other player's "
+        "Player 1 has scored %d points (%d in home + %2d of player 2's "
         "holes)\n",
         p1_score, board->p1_home, p2_holes_sum);
     printf(
-        "Player 2 has scored %d points (%d in home + %2d of other player's "
+        "Player 2 has scored %d points (%d in home + %2d of player 1's "
         "holes)\n",
         p2_score, board->p2_home, p1_holes_sum);
 
@@ -130,6 +132,16 @@ int game_loop(Board* board) {
     }
 }
 
+// for solver, unusued?
+int alt_game_loop(Board* board) {
+    StateNode* statenode = create_statenode(*board, 1);
+    printf("statenode:\n");
+    for (size_t i = 0; i < sizeof(statenode); i++) {
+        printf("%02x ", ((uint8_t*)&statenode)[i]);
+    }
+    printf("\n");
+}
+
 int main() {
     Board _board = {
         {6, 6, 6, 6, 6, 6},  // player2's holes
@@ -137,8 +149,30 @@ int main() {
         {6, 6, 6, 6, 6, 6},  // player1's holes
         0                    // player1's home
     };
-
-    Board* board = &_board;
-    game_loop(board);
+    /*
+    |1    |2    |3    |4    |5    |6    |
+    |   0●|   7●|   7●|   7●|   7●|   7●|
+       ↑              →              ↓
+    |HOME1|                       |HOME2|
+    |   1●|                       |   0●|
+       ↑              ←              ↓
+    |6    |5    |4    |3    |2    |1    |
+    |   7●|   7●|   7●|   7●|   1●|   7●|
+    */
+    Board _alt_board = {
+        {0, 0, 7, 7, 0, 7},  // player2's holes
+        0,                   // player2's home
+        {7, 1, 7, 0, 0, 7},  // player1's holes
+        1                    // player1's home
+    };
+    Board* board = &_alt_board;
+    // game_loop(board);
+    TurnOutcome* tos = malloc(6*sizeof(TurnOutcome));
+    uint8_t holes[6] = {1,2,3,4,5,6};
+    try_plays(board, PLAYER1, holes, 6, tos);
+    for (int i=0; i<6; i++) {
+        printf("%s ", outcome_to_str(tos[i]));
+    }
+    printf("\n");
     return 0;
 }

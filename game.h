@@ -1,5 +1,5 @@
-#ifndef __KALAHA_GAME_H
-#define __KALAHA_GAME_H
+#ifndef KALAHA_GAME_H_
+#define KALAHA_GAME_H_
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -8,6 +8,9 @@
 
 /* Player id, 0 or 1 */
 typedef bool Player;
+
+#define PLAYER1 0
+#define PLAYER2 1
 
 extern const int PLAYER1_HOME, PLAYER2_HOME, BOARD_BYTESIZE;
 extern const char BALL_CHAR[];
@@ -19,7 +22,9 @@ typedef struct Board {
     uint8_t p1_home;
 } Board;
 
-typedef enum TurnOutcome { COMPLETE, REPEAT } TurnOutcome;
+typedef enum TurnOutcome { COMPLETE, REPEAT, INVALID } TurnOutcome;
+
+char outcome_to_str(TurnOutcome outcome);
 
 /*
     Retrieves a pointer to a hole by index. The indexing is defined as follows:
@@ -35,7 +40,6 @@ void display_board(Board* board);
 /*
     Converts index entered from the user into an internal one
 */
-
 int convert_index(int idx, Player player_id);
 
 /*
@@ -48,7 +52,6 @@ uint8_t sum(uint8_t holes[6]);
     Returns COMPLETE if the turn ended normally,
     Returns REPEAT if the player got an extra turn.
 */
-
 TurnOutcome make_a_turn(Board* board, uint32_t idx, Player player_id);
 
-#endif /* __KALAHA_GAME_H */
+#endif  // KALAHA_GAME_H_

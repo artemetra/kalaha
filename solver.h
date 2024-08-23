@@ -1,6 +1,38 @@
-#ifndef __KALAHA_SOLVER_H
-#define __KALAHA_SOLVER_H
+#ifndef KALAHA_SOLVER_H_
+#define KALAHA_SOLVER_H_
 
-void bruh(void);
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
 
-#endif /* __KALAHA_SOLVER_H */
+#include "game.h"
+
+/*
+        Represents a node of a tree of board states.
+        Each node has 6 connections (pointers) which can be null.
+        is_last is true if the turn is complete.
+*/
+typedef struct StateNode {
+    Board board_state;
+    bool is_last;
+    struct StateNode* paths[6];
+} StateNode;
+
+// probably isn't needed
+/*
+typedef struct StateTree {
+        Board initial_board;
+        struct StateNode paths[6];
+} StateTree;
+*/
+
+StateNode* create_statenode(Board board, uint32_t level);
+
+void try_plays(
+    Board* board,
+    Player player_id,
+    uint8_t* holes,
+    uint8_t nholes,
+    TurnOutcome* output);
+
+#endif  // KALAHA_SOLVER_H_

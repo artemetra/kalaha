@@ -1,5 +1,5 @@
 CC = clang
-CFLAGS = -Wall -Wextra -Wunused
+CFLAGS = -g -O0 -Wall -Wextra #-Wunused
 
 all: game
 
