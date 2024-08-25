@@ -25,7 +25,19 @@ StateNode* create_statenode(Board board, Player player_id);
 void grow_statenodes(StateNode* root, Player player_id, uint32_t level);
 void free_statenodes(StateNode* node);
 
-void traverse_tree(StateNode* node, uint8_t path[MAX_STRAT_LEN], uint8_t idx);
+typedef struct OptimalSolution {
+    StateNode statenode;
+    uint8_t strategy[MAX_STRAT_LEN];
+    uint8_t idx;
+    Player player_id;
+} OptimalSolution;
+
+void traverse_tree(StateNode* node,
+                   uint8_t strategy[MAX_STRAT_LEN],
+                   uint8_t idx,
+                   OptimalSolution* optimal_solution);
+
+void print_strategy(uint8_t strategy[MAX_STRAT_LEN], uint8_t idx);
 
 void try_plays(Board* board,
                Player player_id,

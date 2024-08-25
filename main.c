@@ -159,10 +159,18 @@ int main() {
     //int result = game_loop(board);
 
     StateNode* tree;
-    tree = create_statenode(_init_board, P1);
+    tree = create_statenode(_alt_init_board, P1);
     uint8_t path[MAX_STRAT_LEN] = {0};
-    traverse_tree(tree, path, 0);
 
+    OptimalSolution opt_sol = {
+        .player_id = P1,
+        .idx = 0,
+        .strategy = {0},
+        .statenode = *tree,
+    };
+
+    traverse_tree(tree, path, 0, &opt_sol);
+    print_strategy(opt_sol.strategy, opt_sol.idx);
     free_statenodes(tree);
     return 0;
 }

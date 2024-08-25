@@ -66,23 +66,62 @@ void free_statenodes(StateNode* node) {
     free(node);
 }
 
+void update_opt_sol(OptimalSolution* opt_sol,
+                    StateNode* node,
+                    uint8_t strategy[MAX_STRAT_LEN],
+                    uint8_t idx) {
+    if (!opt_sol->statenode.is_last) {
+        memcpy(&opt_sol->statenode, node, sizeof(StateNode));
+        memcpy(opt_sol->strategy, strategy, sizeof(uint8_t) * MAX_STRAT_LEN);
+        opt_sol->idx = idx;
+        return;
+    }
+
+    uint8_t curr;
+    uint8_t upd;
+    if (opt_sol->player_id == P1) {
+        curr = opt_sol->statenode.board_state.p1_home;
+        upd = node->board_state.p1_home;
+    }
+    if (opt_sol->player_id == P2) {
+        curr = opt_sol->statenode.board_state.p2_home;
+        upd = node->board_state.p2_home;
+    }
+
+    if (upd > curr) {
+        memcpy(&opt_sol->statenode, node, sizeof(StateNode));
+        memcpy(opt_sol->strategy, strategy, sizeof(uint8_t) * MAX_STRAT_LEN);
+        opt_sol->idx = idx;
+    }
+}
 
 // Postorder traversal
-void traverse_tree(StateNode* node, uint8_t strategy[MAX_STRAT_LEN], uint8_t idx) {
+// opt_sol is output
+void traverse_tree(StateNode* node,
+                   uint8_t strategy[MAX_STRAT_LEN],
+                   uint8_t idx,
+                   OptimalSolution* opt_sol) {
     if (node == NULL) {
         return;
     }
 
     for (int i = 0; i < 6; i++) {
-        strategy[idx] = i+1;
-        traverse_tree(node->paths[i], strategy, idx+1);
+        strategy[idx] = i + 1;
+        traverse_tree(node->paths[i], strategy, idx + 1, opt_sol);
     }
     if (node->is_last) {
-        if (node->board_state.p1_home == 68) {
-            for(int k = 0; k < MAX_STRAT_LEN; k++) {
-                printf("%d ", strategy[k]);
-            }
-            printf("\n");
-        }
+        update_opt_sol(opt_sol, node, strategy, idx);
     }
+}
+
+void print_strategy(uint8_t strategy[MAX_STRAT_LEN], uint8_t idx) {
+    if (idx == 0) {
+        printf("\n");
+        return;
+    }
+    printf("%d", strategy[0]);
+    for (size_t i = 1; i < idx; i++) {
+        printf("->%d", strategy[i]);
+    }
+    printf("\n");
 }
