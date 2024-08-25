@@ -7,8 +7,6 @@
 
 #include "game.h"
 
-//#define IS_LAST_FLAG
-
 extern uint64_t possible_final_board_states;
 
 /*
@@ -18,9 +16,7 @@ extern uint64_t possible_final_board_states;
 */
 typedef struct StateNode {
     Board board_state;
-    #ifdef IS_LAST_FLAG
-        bool is_last; 
-    #endif
+    bool is_last;
     struct StateNode* paths[6];
 } StateNode;
 

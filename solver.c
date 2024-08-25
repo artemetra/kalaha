@@ -37,16 +37,10 @@ void grow_statenodes(StateNode* root, Player player_id, uint32_t level) {
         if (!child) {
             exit(EXIT_FAILURE);
         }
-        *child = (StateNode){.board_state = board_copy,
-        #ifdef IS_LAST_FLAG
-            .is_last = true,
-        #endif
-        .paths = {NULL}};
+        *child = (StateNode){.board_state = board_copy, .is_last = true, .paths = {NULL}};
 
         if (out == REPEAT) {
-            #ifdef IS_LAST_FLAG
-                child->is_last = false;
-            #endif
+            child->is_last = false;
             are_all_complete = false;
             grow_statenodes(child, player_id, level + 1);
         }
