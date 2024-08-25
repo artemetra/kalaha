@@ -3,3 +3,6 @@
 *.o
 *.out
 .DS_STORE
+
+# Personal number crunching i've been doing
+_stats/ 
