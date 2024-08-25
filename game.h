@@ -25,6 +25,7 @@ typedef struct Board {
 typedef enum TurnOutcome { COMPLETE, REPEAT, INVALID } TurnOutcome;
 
 void outcome_to_str(TurnOutcome outcome, char* output, size_t size);
+
 /*
     Retrieves a pointer to a hole by index. The indexing is defined as follows:
     0-5: player2's holes 1-6

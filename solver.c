@@ -5,7 +5,7 @@
 #include "game.h"
 #include "solver.h"
 
-const uint32_t MAX_LEVEL = 100;
+const uint32_t MAX_LEVEL = 100000;
 uint64_t possible_final_board_states = 0;
 // Returns a fully grown statenode from a board and a player_id.
 StateNode* create_statenode(Board board, Player player_id) {
@@ -44,7 +44,9 @@ void grow_statenodes(StateNode* root, Player player_id, uint32_t level) {
             are_all_complete = false;
             grow_statenodes(child, player_id, level + 1);
         }
-        root->paths[i - 1] = child;
+        if (out != INVALID) {
+            root->paths[i - 1] = child;
+        }
     }
     if (are_all_complete) {
         possible_final_board_states++;
@@ -62,4 +64,25 @@ void free_statenodes(StateNode* node) {
         }
     }
     free(node);
+}
+
+
+// Postorder traversal
+void traverse_tree(StateNode* node, uint8_t strategy[MAX_STRAT_LEN], uint8_t idx) {
+    if (node == NULL) {
+        return;
+    }
+
+    for (int i = 0; i < 6; i++) {
+        strategy[idx] = i+1;
+        traverse_tree(node->paths[i], strategy, idx+1);
+    }
+    if (node->is_last) {
+        if (node->board_state.p1_home == 68) {
+            for(int k = 0; k < MAX_STRAT_LEN; k++) {
+                printf("%d ", strategy[k]);
+            }
+            printf("\n");
+        }
+    }
 }

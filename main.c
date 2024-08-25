@@ -141,37 +141,28 @@ int game_loop(Board* board) {
 }
 
 int main() {
-    Board _board = {
+    Board _init_board = {
         {6, 6, 6, 6, 6, 6},  // player2's holes
         0,                   // player2's home
         {6, 6, 6, 6, 6, 6},  // player1's holes
         0                    // player1's home
     };
-    /*
-    |1    |2    |3    |4    |5    |6    |
-    |   0●|   7●|   7●|   7●|   7●|   7●|
-       ↑              →              ↓
-    |HOME1|                       |HOME2|
-    |   1●|                       |   0●|
-       ↑              ←              ↓
-    |6    |5    |4    |3    |2    |1    |
-    |   7●|   7●|   7●|   7●|   1●|   7●|
-    */
-    Board _alt_board = {
-        {0, 0, 7, 7, 0, 7},  // player2's holes
+
+    Board _alt_init_board = {
+        {0, 0, 7, 0, 0, 0},  // player2's holes
         0,                   // player2's home
-        {7, 1, 7, 0, 0, 7},  // player1's holes
-        1                    // player1's home
+        {7, 8, 4, 1, 2, 1},  // player1's holes
+        0                    // player1's home
     };
-    Board* board = &_board;
-    // create_statenode(_board, P1, 0);
+    Board* board = &_init_board;
     srand(time(NULL) + 1);
-    // int result = game_loop(board);
-    // fprintf(stderr, "%d\n", result);
+    //int result = game_loop(board);
 
     StateNode* tree;
-    tree = create_statenode(_alt_board, P1);
-    printf("%llu\n", possible_final_board_states);
+    tree = create_statenode(_init_board, P1);
+    uint8_t path[MAX_STRAT_LEN] = {0};
+    traverse_tree(tree, path, 0);
+
     free_statenodes(tree);
     return 0;
 }

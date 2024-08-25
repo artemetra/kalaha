@@ -8,6 +8,7 @@
 #include "game.h"
 
 extern uint64_t possible_final_board_states;
+#define MAX_STRAT_LEN 100
 
 /*
         Represents a node of a tree of board states.
@@ -23,6 +24,8 @@ typedef struct StateNode {
 StateNode* create_statenode(Board board, Player player_id);
 void grow_statenodes(StateNode* root, Player player_id, uint32_t level);
 void free_statenodes(StateNode* node);
+
+void traverse_tree(StateNode* node, uint8_t path[MAX_STRAT_LEN], uint8_t idx);
 
 void try_plays(Board* board,
                Player player_id,
