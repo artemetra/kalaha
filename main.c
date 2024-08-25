@@ -8,7 +8,7 @@
 #include "colors.h"
 #include "game.h"
 #include "solver.h"
-
+extern uint64_t possible_final_board_states;
 #define OK 0
 #define NO_INPUT 1
 #define TOO_LONG 2
@@ -142,9 +142,9 @@ int game_loop(Board* board) {
 
 int main() {
     Board _board = {
-        {0, 1, 0, 2, 0, 0},  // player2's holes
+        {6, 6, 6, 6, 6, 6},  // player2's holes
         0,                   // player2's home
-        {0, 1, 0, 1, 0, 0},  // player1's holes
+        {6, 6, 6, 6, 6, 6},  // player1's holes
         0                    // player1's home
     };
     /*
@@ -169,11 +169,9 @@ int main() {
     // int result = game_loop(board);
     // fprintf(stderr, "%d\n", result);
 
-    StateNode _tree = create_statenode(_board, P2);
-    StateNode* tree = &_tree;
-    printf("bruh..");
-    uint64_t nodecount = 0;
-    free_statenodes(tree, &nodecount);
-    
+    StateNode* tree;
+    tree = create_statenode(_alt_board, P1);
+    printf("%llu\n", possible_final_board_states);
+    free_statenodes(tree);
     return 0;
 }

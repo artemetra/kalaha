@@ -7,6 +7,10 @@
 
 #include "game.h"
 
+//#define IS_LAST_FLAG
+
+extern uint64_t possible_final_board_states;
+
 /*
         Represents a node of a tree of board states.
         Each node has 6 connections (pointers) which can be null.
@@ -14,12 +18,15 @@
 */
 typedef struct StateNode {
     Board board_state;
+    #ifdef IS_LAST_FLAG
+        bool is_last; 
+    #endif
     struct StateNode* paths[6];
 } StateNode;
 
-StateNode create_statenode(Board board, Player player_id);
+StateNode* create_statenode(Board board, Player player_id);
 void grow_statenodes(StateNode* root, Player player_id, uint32_t level);
-void free_statenodes(StateNode* node, uint64_t* nodecount);
+void free_statenodes(StateNode* node);
 
 void try_plays(Board* board,
                Player player_id,
