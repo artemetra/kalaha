@@ -120,7 +120,7 @@ void print_strategy(uint8_t strategy[MAX_STRAT_LEN], uint8_t idx) {
         return;
     }
     printf("%d", strategy[0]);
-    for (size_t i = 1; i < idx; i++) {
+    for (size_t i = 1; i <= idx; i++) {
         printf("->%d", strategy[i]);
     }
     printf("\n");
