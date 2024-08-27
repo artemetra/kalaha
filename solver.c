@@ -5,7 +5,7 @@
 #include "game.h"
 #include "solver.h"
 
-const uint32_t MAX_LEVEL = 100000;
+uint32_t MAX_LEVEL = 100000;
 uint64_t possible_final_board_states = 0;
 // Returns a fully grown statenode from a board and a player_id.
 StateNode* create_statenode(Board board, Player player_id) {
@@ -23,6 +23,7 @@ StateNode* create_statenode(Board board, Player player_id) {
 // Recursively grow statenodes from the root.
 void grow_statenodes(StateNode* root, Player player_id, uint32_t level) {
     if (level >= MAX_LEVEL) {
+        root->is_last = true;
         return;
     }
     bool are_all_complete = true;
@@ -44,9 +45,7 @@ void grow_statenodes(StateNode* root, Player player_id, uint32_t level) {
             are_all_complete = false;
             grow_statenodes(child, player_id, level + 1);
         }
-        if (out != INVALID) {
-            root->paths[i - 1] = child;
-        }
+        root->paths[i - 1] = child;
     }
     if (are_all_complete) {
         possible_final_board_states++;
@@ -114,14 +113,19 @@ void traverse_tree(StateNode* node,
     }
 }
 
-void print_strategy(uint8_t strategy[MAX_STRAT_LEN], uint8_t idx) {
+// Writes the strategy to a string `buf`
+void write_strategy(uint8_t strategy[MAX_STRAT_LEN],
+                    uint8_t idx,
+                    char* buf,
+                    size_t size) {
     if (idx == 0) {
-        printf("\n");
         return;
     }
-    printf("%d", strategy[0]);
+    char temp[5];
+    snprintf(temp, 5, "%d", strategy[0]);
+    strcat(buf, temp);
     for (size_t i = 1; i <= idx; i++) {
-        printf("->%d", strategy[i]);
+        snprintf(temp, 5, "->%d", strategy[i]);
+        strcat(buf, temp);
     }
-    printf("\n");
 }

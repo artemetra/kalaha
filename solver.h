@@ -8,6 +8,9 @@
 #include "game.h"
 
 extern uint64_t possible_final_board_states;
+extern uint64_t used_mem;
+extern uint32_t MAX_LEVEL;
+
 #define MAX_STRAT_LEN 100
 
 /*
@@ -37,7 +40,7 @@ void traverse_tree(StateNode* node,
                    uint8_t idx,
                    OptimalSolution* optimal_solution);
 
-void print_strategy(uint8_t strategy[MAX_STRAT_LEN], uint8_t idx);
+void write_strategy(uint8_t strategy[MAX_STRAT_LEN], uint8_t idx, char* buf, size_t size);
 
 void try_plays(Board* board,
                Player player_id,

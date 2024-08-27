@@ -8,7 +8,7 @@
 #include "colors.h"
 #include "game.h"
 #include "solver.h"
-extern uint64_t possible_final_board_states;
+
 #define OK 0
 #define NO_INPUT 1
 #define TOO_LONG 2
@@ -156,21 +156,25 @@ int main() {
     };
     Board* board = &_init_board;
     srand(time(NULL) + 1);
-    //int result = game_loop(board);
+    // int result = game_loop(board);
+    for (int i = 1000; i <= 1050; i++) {
+        MAX_LEVEL = i;
+        StateNode* tree;
+        tree = create_statenode(_init_board, P1);
+        uint8_t path[MAX_STRAT_LEN] = {0};
 
-    StateNode* tree;
-    tree = create_statenode(_alt_init_board, P1);
-    uint8_t path[MAX_STRAT_LEN] = {0};
+        OptimalSolution opt_sol = {
+            .player_id = P1,
+            .idx = 0,
+            .strategy = {0},
+            .statenode = *tree,
+        };
 
-    OptimalSolution opt_sol = {
-        .player_id = P1,
-        .idx = 0,
-        .strategy = {0},
-        .statenode = *tree,
-    };
-
-    traverse_tree(tree, path, 0, &opt_sol);
-    print_strategy(opt_sol.strategy, opt_sol.idx);
-    free_statenodes(tree);
+        traverse_tree(tree, path, 0, &opt_sol);
+        char buf[100] = {0};
+        write_strategy(opt_sol.strategy, opt_sol.idx, buf, 100);
+        printf("%d:%s\n", i, buf);
+        free_statenodes(tree);
+    }
     return 0;
 }
