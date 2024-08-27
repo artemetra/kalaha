@@ -5,7 +5,7 @@
 #include "game.h"
 #include "solver.h"
 
-uint32_t MAX_LEVEL = 100000;
+uint32_t MAX_LEVEL = 75;
 uint64_t possible_final_board_states = 0;
 // Returns a fully grown statenode from a board and a player_id.
 StateNode* create_statenode(Board board, Player player_id) {
@@ -45,7 +45,11 @@ void grow_statenodes(StateNode* root, Player player_id, uint32_t level) {
             are_all_complete = false;
             grow_statenodes(child, player_id, level + 1);
         }
-        root->paths[i - 1] = child;
+        if (out != INVALID) {
+            root->paths[i - 1] = child;
+        } else {
+            free(child);
+        }
     }
     if (are_all_complete) {
         possible_final_board_states++;

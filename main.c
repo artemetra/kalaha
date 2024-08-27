@@ -157,7 +157,7 @@ int main() {
     Board* board = &_init_board;
     srand(time(NULL) + 1);
     // int result = game_loop(board);
-    for (int i = 1000; i <= 1050; i++) {
+    for (uint32_t i = 5; i <= 5; i++) {
         MAX_LEVEL = i;
         StateNode* tree;
         tree = create_statenode(_init_board, P1);
@@ -173,7 +173,7 @@ int main() {
         traverse_tree(tree, path, 0, &opt_sol);
         char buf[100] = {0};
         write_strategy(opt_sol.strategy, opt_sol.idx, buf, 100);
-        printf("%d:%s\n", i, buf);
+        printf("%llu:%s\n", i, buf);
         free_statenodes(tree);
     }
     return 0;
