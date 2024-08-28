@@ -11,9 +11,7 @@ const int PLAYER2_HOME = 6;
 const int BOARD_BYTESIZE = 14;
 const char BALL_CHAR[] = "\u25CF";
 
-// Returns pointer to the contents of the hole given by `idx`, which is got from
-// `convert_index`. Returns `NULL` if `idx` is invalid, woopsie.
-uint8_t* get_hole(Board* board, uint32_t idx) {
+uint8_t* get_hole(Board* board, uint8_t idx) {
     if (idx < 0 || (idx % BOARD_BYTESIZE) > 13) {
         return NULL;
     }
@@ -49,22 +47,24 @@ void display_board(Board* board) {
 
     tot += sprintf(buf + tot, "|6    |5    |4    |3    |2    |1    |\n");
     tot += sprintf(buf + tot, "|");
+    // print in reverse
     for (int i = 12; i > 6; i--)
         tot += sprintf(buf + tot, " %3d%s|", *get_hole(board, i), BALL_CHAR);
 
     printf("%s\n", buf);
 }
 
-int convert_index(int idx, Player player_id) {
-    if (player_id)
+uint8_t convert_index(uint8_t idx, Player player_id) {
+    if (player_id == P2)
         return idx - 1;
     else
         return idx + 6;
 }
 
-TurnOutcome make_a_turn(Board* board, uint32_t idx, Player player_id) {
+TurnOutcome make_a_turn(Board* board, uint8_t idx, Player player_id) {
     uint8_t* chosen_hole = get_hole(board, idx);
-    if (chosen_hole != NULL && *chosen_hole == 0) {
+    // careful shortcircuiting
+    if (chosen_hole == NULL || *chosen_hole == 0) {
         return INVALID;
     }
     assert(chosen_hole);
@@ -76,6 +76,7 @@ TurnOutcome make_a_turn(Board* board, uint32_t idx, Player player_id) {
 
     while (in_hand) {
         idx++;
+        idx %= BOARD_BYTESIZE;
         hole = get_hole(board, idx);
         // if the current hole is not current player's home, skip it
         if ((hole == &(board->p1_home) && player_id == 1) ||

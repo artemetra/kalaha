@@ -12,6 +12,8 @@
 #define OK 0
 #define NO_INPUT 1
 #define TOO_LONG 2
+
+// Get a line from the user with a prompt.
 // shamelessly stolen from
 // https://stackoverflow.com/questions/4023895/how-do-i-read-a-string-entered-by-the-user-in-c/4023921#4023921
 static int get_line(char* prmpt, char* buff, size_t sz) {
@@ -41,7 +43,7 @@ static int get_line(char* prmpt, char* buff, size_t sz) {
 
 // TODO: make an option to leave (maybe)
 /*
-    Prompts a player to choose a hole.
+    Prompts a player to choose a hole to play.
 */
 uint32_t prompt_user(Board* board, Player player_id) {
     char buffer[3];  // one digit, \n and \0
@@ -76,8 +78,7 @@ uint32_t prompt_user(Board* board, Player player_id) {
 
 // TODO: refactor to make it solver friendly (make another function?)
 /*
-    Main game loop. Returns the id of the winner 0 or 1
-    -1 is the draw outcome
+    Main game loop (PvP). Returns the id of the winner `P1` or `P2`, or `DRAW`.
 */
 int game_loop(Board* board) {
     Player current_player = P1;
@@ -136,7 +137,7 @@ int game_loop(Board* board) {
         return P2;
     } else {
         printf("Draw! Thanks for playing the game.\n");
-        return -1;
+        return DRAW;
     }
 }
 
@@ -156,12 +157,12 @@ int main() {
     };
     Board* board = &_init_board;
     srand(time(NULL) + 1);
-    // int result = game_loop(board);
+    //int result = game_loop(board);
     for (uint32_t i = 5; i <= 5; i++) {
         MAX_LEVEL = i;
         StateNode* tree;
         tree = create_statenode(_init_board, P1);
-        uint8_t path[MAX_STRAT_LEN] = {0};
+        uint8_t strategy[MAX_STRAT_LEN] = {0};
 
         OptimalSolution opt_sol = {
             .player_id = P1,
@@ -170,7 +171,7 @@ int main() {
             .statenode = *tree,
         };
 
-        traverse_tree(tree, path, 0, &opt_sol);
+        traverse_tree(tree, strategy, 0, &opt_sol);
         char buf[100] = {0};
         write_strategy(opt_sol.strategy, opt_sol.idx, buf, 100);
         printf("%llu:%s\n", i, buf);

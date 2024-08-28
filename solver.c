@@ -7,7 +7,7 @@
 
 uint32_t MAX_LEVEL = 75;
 uint64_t possible_final_board_states = 0;
-// Returns a fully grown statenode from a board and a player_id.
+
 StateNode* create_statenode(Board board, Player player_id) {
     possible_final_board_states = 0;
     StateNode* root = malloc(sizeof(StateNode));
@@ -20,7 +20,6 @@ StateNode* create_statenode(Board board, Player player_id) {
     return root;
 }
 
-// Recursively grow statenodes from the root.
 void grow_statenodes(StateNode* root, Player player_id, uint32_t level) {
     if (level >= MAX_LEVEL) {
         root->is_last = true;
@@ -56,7 +55,6 @@ void grow_statenodes(StateNode* root, Player player_id, uint32_t level) {
     }
 }
 
-// Recursively frees all statenodes starting from `node` AND `node` itself.
 void free_statenodes(StateNode* node) {
     if (node == NULL) {
         return;
@@ -98,8 +96,6 @@ void update_opt_sol(OptimalSolution* opt_sol,
     }
 }
 
-// Postorder traversal
-// opt_sol is output
 void traverse_tree(StateNode* node,
                    uint8_t strategy[MAX_STRAT_LEN],
                    uint8_t idx,
@@ -117,7 +113,6 @@ void traverse_tree(StateNode* node,
     }
 }
 
-// Writes the strategy to a string `buf`
 void write_strategy(uint8_t strategy[MAX_STRAT_LEN],
                     uint8_t idx,
                     char* buf,
