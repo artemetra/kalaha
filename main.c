@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <unistd.h>
 
 #include "colors.h"
 #include "game.h"
@@ -50,11 +51,11 @@ uint32_t prompt_user(Board* board, Player player_id) {
     char query[39];
     sprintf(query, "Player %d, choose hole to play (1-6): ", player_id + 1);
     for (;;) {
-        int err = get_line(query, buffer, 4);
-        // int rand_input = (arc4random() % 6) + 1;
-        // printf("%d\n", rand_input);
-        // sprintf(buffer, "%d\n", rand_input);
-        // int err = 0;
+        // int err = get_line(query, buffer, 4);
+        int rand_input = (arc4random() % 6) + 1;
+        printf("%d\n", rand_input);
+        sprintf(buffer, "%d\n", rand_input);
+        int err = 0;
         if (!err) {
             int user_input;
             // includes EOF and failure to match (0)
@@ -85,11 +86,9 @@ int game_loop(Board* board) {
     display_board(board);
     uint8_t p1_holes_sum;
     uint8_t p2_holes_sum;
-    uint32_t turn_counter = 0;  // for stats
     for (;;) {
         TurnOutcome turn_outcome =
             make_a_turn(board, prompt_user(board, current_player), current_player);
-        turn_counter++;
         p1_holes_sum = sum(board->p1_holes);
         p2_holes_sum = sum(board->p2_holes);
         display_board(board);
@@ -117,7 +116,81 @@ int game_loop(Board* board) {
     uint8_t p1_score = board->p1_home + p2_holes_sum;
     uint8_t p2_score = board->p2_home + p1_holes_sum;
 
-    // fprintf(stderr, "%d\n", turn_counter);
+    printf("\n---RESULTS---\n");
+    printf(
+        "Player 1 has scored %d points (%d in home + %2d of player 2's "
+        "holes)\n",
+        p1_score, board->p1_home, p2_holes_sum);
+    printf(
+        "Player 2 has scored %d points (%d in home + %2d of player 1's "
+        "holes)\n",
+        p2_score, board->p2_home, p1_holes_sum);
+
+    if (p1_score > p2_score) {
+        printf("Player 1 wins! Thanks for playing the game.\n");
+        return P1;
+    } else if (p2_score > p1_score) {
+        printf("Player 2 wins! Thanks for playing the game.\n");
+        return P2;
+    } else {
+        printf("Draw! Thanks for playing the game.\n");
+        return DRAW;
+    }
+}
+
+int alt_game_loop(Board* board, uint32_t diff_level) {
+    Player current_player = P1;
+    display_board(board);
+    uint8_t p1_holes_sum;
+    uint8_t p2_holes_sum;
+
+    for (;;) {
+        if (current_player == P1) {
+            TurnOutcome turn_outcome =
+                make_a_turn(board, prompt_user(board, current_player), current_player);
+            p1_holes_sum = sum(board->p1_holes);
+            p2_holes_sum = sum(board->p2_holes);
+            display_board(board);
+            if (turn_outcome == COMPLETE) {
+                printf("Player %d has finished their turn!\n", current_player + 1);
+                if ((current_player == P1 && p1_holes_sum == 0) ||
+                    (current_player == P2 && p2_holes_sum == 0)) {
+                    printf("Player %d's holes are empty, game over\n",
+                           current_player + 1);
+                    break;
+                }
+                current_player = !current_player;
+            } else if (turn_outcome == REPEAT) {
+                printf("Player %d landed their last ball into their home",
+                       current_player + 1);
+                if ((current_player == P1 && p1_holes_sum == 0) ||
+                    (current_player == P2 && p2_holes_sum == 0)) {
+                    printf(", but their holes are empty, the game is over\n");
+                    break;
+                } else {
+                    printf("! They get an extra turn.\n");
+                }
+            }
+        } else {
+            printf("Processing....\n");
+            StateNode* tree;
+            tree = create_statenode(*board, P2, diff_level);
+            OptimalSolution* opt_sol = find_optimal_solution(tree, P2);
+            char buf[300] = {0};
+            write_strategy(opt_sol->strategy, opt_sol->idx, buf);
+            printf("Computers solution: %s\n", buf);
+
+            memcpy(board, &(opt_sol->statenode.board_state), sizeof(Board));
+
+            free_optimal_solution(opt_sol);
+            free_statenodes(tree);
+            display_board(board);
+            current_player = !current_player;
+        }
+    }
+
+    uint8_t p1_score = board->p1_home + p2_holes_sum;
+    uint8_t p2_score = board->p2_home + p1_holes_sum;
 
     printf("\n---RESULTS---\n");
     printf(
@@ -143,33 +216,13 @@ int game_loop(Board* board) {
 
 int main() {
     Board _init_board = {
-        {6, 6, 6, 6, 6, 6},  // player2's holes
+        {0, 0, 0, 0, 1, 0},  // player2's holes
         0,                   // player2's home
-        {6, 6, 6, 6, 6, 6},  // player1's holes
-        0                    // player1's home
-    };
-
-    Board _alt_init_board = {
-        {0, 0, 7, 0, 0, 0},  // player2's holes
-        0,                   // player2's home
-        {7, 8, 4, 1, 2, 1},  // player1's holes
+        {0, 1, 1, 0, 0, 0},  // player1's holes
         0                    // player1's home
     };
     Board* board = &_init_board;
     srand(time(NULL) + 1);
-    // int result = game_loop(board);
-    StateNode* tree;
-    tree = create_statenode(_init_board, P1, 75);
-
-    OptimalSolution* opt_sol = find_optimal_solution(tree, P1);
-    char buf[300] = {0};
-    write_strategy(opt_sol->strategy, opt_sol->idx, buf);
-    printf("%llu:%s\n", 0, buf);
-
-    display_board(&(tree->board_state));
-    display_board(&(opt_sol->statenode.board_state));
-    free_optimal_solution(opt_sol);
-    free_statenodes(tree);
-
+    alt_game_loop(board, 700);
     return 0;
 }
