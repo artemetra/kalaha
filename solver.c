@@ -16,6 +16,16 @@ StateNode* create_statenode(Board board, Player player_id, const uint32_t max_le
     return root;
 }
 
+bool are_all_zero(uint8_t arr[6]) {
+    bool all_zero = true;
+    for (size_t i = 0; i < 6; i++) {
+        if (arr[i]) {
+            all_zero = false;
+        }
+    }
+    return all_zero;
+}
+
 void grow_statenodes(StateNode* root, Player player_id, uint32_t level) {
     if (level == 0) {
         root->is_last = true;
@@ -35,8 +45,16 @@ void grow_statenodes(StateNode* root, Player player_id, uint32_t level) {
         *child = (StateNode){.board_state = board_copy, .is_last = true, .paths = {NULL}};
 
         if (out == REPEAT) {
-            child->is_last = false;
-            grow_statenodes(child, player_id, level - 1);
+            uint8_t(*holes)[6];
+            if (player_id == P1) {
+                holes = &board_copy.p1_holes;
+            } else {
+                holes = &board_copy.p2_holes;
+            }
+            if (!are_all_zero(*holes)) {
+                child->is_last = false;
+                grow_statenodes(child, player_id, level - 1);
+            }
         }
         if (out != INVALID) {
             root->paths[i - 1] = child;
