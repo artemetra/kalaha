@@ -37,7 +37,9 @@ void grow_statenodes(StateNode* root, Player player_id, uint32_t level) {
 
         int idx = convert_index(i, player_id);
         TurnOutcome out = make_a_turn(&board_copy, idx, player_id);
-
+        if (out == INVALID) {
+            continue;
+        }
         StateNode* child = malloc(sizeof(StateNode));
         if (!child) {
             exit(EXIT_FAILURE);
@@ -56,11 +58,7 @@ void grow_statenodes(StateNode* root, Player player_id, uint32_t level) {
                 grow_statenodes(child, player_id, level - 1);
             }
         }
-        if (out != INVALID) {
-            root->paths[i - 1] = child;
-        } else {
-            free(child);
-        }
+        root->paths[i - 1] = child;
     }
 }
 
