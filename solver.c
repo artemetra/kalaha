@@ -107,7 +107,7 @@ void update_opt_sol(OptimalSolution* opt_sol,
 
     // If the new state has the same solution but in less steps, update
     if (upd == curr) {
-        if (idx < opt_sol->idx) {
+        if (idx < opt_sol->idx && idx != 0) {
             memcpy(&opt_sol->statenode, node, sizeof(StateNode));
             memcpy(opt_sol->strategy, strategy, sizeof(uint8_t) * MAX_STRAT_LEN);
             opt_sol->idx = idx;
@@ -132,6 +132,10 @@ void traverse_tree(StateNode* node,
         traverse_tree(node->paths[i], strategy, idx + 1, opt_sol);
     }
     if (node->is_last) {
+        if (strategy[idx] == 6 && node->paths[5] == NULL) {
+            strategy[idx] = 0;
+            idx--;
+        }
         update_opt_sol(opt_sol, node, strategy, idx);
     }
 }
@@ -157,9 +161,6 @@ void free_optimal_solution(OptimalSolution* opt_sol) {
 }
 
 void write_strategy(uint8_t strategy[MAX_STRAT_LEN], uint8_t idx, char* buf) {
-    if (idx == 0) {
-        return;
-    }
     char temp[5];
     snprintf(temp, 5, "%d", strategy[0]);
     strcat(buf, temp);
