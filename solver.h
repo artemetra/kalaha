@@ -92,8 +92,7 @@ void free_optimal_solution(OptimalSolution* opt_sol);
     `strategy` -- the strategy to print.
     `idx` -- index to the last strategy element.
     `buf` (OUT) -- output buffer
-    `size` -- output buffer size
 */
-void write_strategy(uint8_t strategy[MAX_STRAT_LEN], uint8_t idx, char* buf, size_t size);
+void write_strategy(uint8_t strategy[MAX_STRAT_LEN], uint8_t idx, char* buf);
 
 #endif  // KALAHA_SOLVER_H_

@@ -149,10 +149,7 @@ void free_optimal_solution(OptimalSolution* opt_sol) {
     free(opt_sol);
 }
 
-void write_strategy(uint8_t strategy[MAX_STRAT_LEN],
-                    uint8_t idx,
-                    char* buf,
-                    size_t size) {
+void write_strategy(uint8_t strategy[MAX_STRAT_LEN], uint8_t idx, char* buf) {
     if (idx == 0) {
         return;
     }
