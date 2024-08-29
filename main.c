@@ -165,7 +165,7 @@ int main() {
 
         OptimalSolution* opt_sol = find_optimal_solution(tree, P1);
         char buf[300] = {0};
-        write_strategy(opt_sol->strategy, opt_sol->idx, buf, 300);
+        write_strategy(opt_sol->strategy, opt_sol->idx, buf);
         printf("%llu:%s\n", i, buf);
 
         display_board(&(tree->board_state));
