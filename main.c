@@ -51,11 +51,12 @@ uint32_t prompt_user(Board* board, Player player_id) {
     char query[39];
     sprintf(query, "Player %d, choose hole to play (1-6): ", player_id + 1);
     for (;;) {
-        // int err = get_line(query, buffer, 4);
-        int rand_input = (arc4random() % 6) + 1;
-        printf("%d\n", rand_input);
-        sprintf(buffer, "%d\n", rand_input);
-        int err = 0;
+        int err = get_line(query, buffer, 4);
+
+        // int rand_input = (arc4random() % 6) + 1;
+        // printf("%d\n", rand_input);
+        // sprintf(buffer, "%d\n", rand_input);
+        // int err = 0;
         if (!err) {
             int user_input;
             // includes EOF and failure to match (0)
@@ -184,7 +185,17 @@ int alt_game_loop(Board* board, uint32_t diff_level) {
 
             free_optimal_solution(opt_sol);
             free_statenodes(tree);
+
+            p1_holes_sum = sum(board->p1_holes);
+            p2_holes_sum = sum(board->p2_holes);
+
             display_board(board);
+            printf("Computer has finished its turn!\n");
+            if ((current_player == P1 && p1_holes_sum == 0) ||
+                (current_player == P2 && p2_holes_sum == 0)) {
+                printf("Computer's holes are empty!\n");
+                break;
+            }
             current_player = !current_player;
         }
     }
@@ -194,11 +205,11 @@ int alt_game_loop(Board* board, uint32_t diff_level) {
 
     printf("\n---RESULTS---\n");
     printf(
-        "Player 1 has scored %d points (%d in home + %2d of player 2's "
+        "Player 1 has scored %d points (%d in home + %2d of Computers's "
         "holes)\n",
         p1_score, board->p1_home, p2_holes_sum);
     printf(
-        "Player 2 has scored %d points (%d in home + %2d of player 1's "
+        "Computer has scored %d points (%d in home + %2d of player 1's "
         "holes)\n",
         p2_score, board->p2_home, p1_holes_sum);
 
@@ -206,7 +217,7 @@ int alt_game_loop(Board* board, uint32_t diff_level) {
         printf("Player 1 wins! Thanks for playing the game.\n");
         return P1;
     } else if (p2_score > p1_score) {
-        printf("Player 2 wins! Thanks for playing the game.\n");
+        printf("Computer wins! Thanks for playing the game.\n");
         return P2;
     } else {
         printf("Draw! Thanks for playing the game.\n");
@@ -216,13 +227,13 @@ int alt_game_loop(Board* board, uint32_t diff_level) {
 
 int main() {
     Board _init_board = {
-        {0, 0, 0, 0, 1, 0},  // player2's holes
+        {6, 6, 6, 6, 6, 6},  // player2's holes
         0,                   // player2's home
-        {0, 1, 1, 0, 0, 0},  // player1's holes
+        {6, 6, 6, 6, 6, 6},  // player1's holes
         0                    // player1's home
     };
     Board* board = &_init_board;
     srand(time(NULL) + 1);
-    alt_game_loop(board, 700);
+    alt_game_loop(board, 1000);
     return 0;
 }
