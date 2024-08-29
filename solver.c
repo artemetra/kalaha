@@ -5,27 +5,22 @@
 #include "game.h"
 #include "solver.h"
 
-uint32_t MAX_LEVEL = 75;
-uint64_t possible_final_board_states = 0;
-
-StateNode* create_statenode(Board board, Player player_id) {
-    possible_final_board_states = 0;
+StateNode* create_statenode(Board board, Player player_id, const uint32_t max_level) {
     StateNode* root = malloc(sizeof(StateNode));
     *root = (StateNode){
         board,
         false,
         {NULL},
     };
-    grow_statenodes(root, player_id, 0);
+    grow_statenodes(root, player_id, max_level);
     return root;
 }
 
 void grow_statenodes(StateNode* root, Player player_id, uint32_t level) {
-    if (level >= MAX_LEVEL) {
+    if (level == 0) {
         root->is_last = true;
         return;
     }
-    bool are_all_complete = true;
     for (int i = 1; i <= 6; i++) {
         Board board_copy;
         memcpy(&board_copy, &root->board_state, sizeof(Board));
@@ -41,17 +36,13 @@ void grow_statenodes(StateNode* root, Player player_id, uint32_t level) {
 
         if (out == REPEAT) {
             child->is_last = false;
-            are_all_complete = false;
-            grow_statenodes(child, player_id, level + 1);
+            grow_statenodes(child, player_id, level - 1);
         }
         if (out != INVALID) {
             root->paths[i - 1] = child;
         } else {
             free(child);
         }
-    }
-    if (are_all_complete) {
-        possible_final_board_states++;
     }
 }
 

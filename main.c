@@ -158,20 +158,18 @@ int main() {
     Board* board = &_init_board;
     srand(time(NULL) + 1);
     // int result = game_loop(board);
-    for (uint32_t i = 500; i <= 500; i++) {
-        MAX_LEVEL = i;
-        StateNode* tree;
-        tree = create_statenode(_init_board, P1);
+    StateNode* tree;
+    tree = create_statenode(_init_board, P1, 75);
 
-        OptimalSolution* opt_sol = find_optimal_solution(tree, P1);
-        char buf[300] = {0};
-        write_strategy(opt_sol->strategy, opt_sol->idx, buf);
-        printf("%llu:%s\n", i, buf);
+    OptimalSolution* opt_sol = find_optimal_solution(tree, P1);
+    char buf[300] = {0};
+    write_strategy(opt_sol->strategy, opt_sol->idx, buf);
+    printf("%llu:%s\n", 0, buf);
 
-        display_board(&(tree->board_state));
-        display_board(&(opt_sol->statenode.board_state));
-        free_optimal_solution(opt_sol);
-        free_statenodes(tree);
-    }
+    display_board(&(tree->board_state));
+    display_board(&(opt_sol->statenode.board_state));
+    free_optimal_solution(opt_sol);
+    free_statenodes(tree);
+
     return 0;
 }

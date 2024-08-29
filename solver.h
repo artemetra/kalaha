@@ -7,10 +7,6 @@
 
 #include "game.h"
 
-extern uint64_t possible_final_board_states;
-extern uint64_t used_mem;
-extern uint32_t MAX_LEVEL;
-
 #define MAX_STRAT_LEN 100
 
 /*
@@ -32,13 +28,13 @@ typedef struct StateNode {
 /*
     Returns a fully "grown" statenode tree from a `board` and a `player_id`.
     The function will explore all possible plays `player_id` can do, including additional
-    turns, up to `MAX_LEVEL` of depth. All statenodes are allocated on the heap, call
+    turns, up to `max_level` of depth. All statenodes are allocated on the heap, call
     `free_statenodes` after use.
 */
-StateNode* create_statenode(Board board, Player player_id);
+StateNode* create_statenode(Board board, Player player_id, const uint32_t max_level);
 
 /*
-    Recursively "grows" statenodes from a root, up to `MAX_LEVEL`. Should not be used
+    Recursively "grows" statenodes from a root, up to `level`. Should not be used
     directly, instead call `create_statenode`.
 */
 void grow_statenodes(StateNode* root, Player player_id, uint32_t level);
