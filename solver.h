@@ -49,7 +49,7 @@ void grow_statenodes(StateNode* root, Player player_id, uint32_t level);
 void free_statenodes(StateNode* node);
 
 /*
-    Helper struct for the optimal solution found from `traverse_tree`.
+    Helper struct for the optimal solution found from `find_optimal_solution`.
 
     `statenode` -- resulting statenode from applying the solution. The resulting board
     state can then just be taken from this.
@@ -67,21 +67,33 @@ typedef struct OptimalSolution {
 } OptimalSolution;
 
 /*
-    Recursively traverses the statenode tree and finds the optimal solution for it.
-    (FINISH)
+    Returns a pointer to an optimal solution for a given tree for a player.
+    The solution is found by traversing the statenode tree and looking for all possible
+    end states and finding the one that has the maximum count of balls in `player_id`s
+    home. It does not consider how (possibly) beneficial is the final board state for the
+    other player could be. The solution is not guaranteed to be the shortest (TODO?)
+
+    `root` (IN) -- root statenode
+    `player_id` -- player_id
 */
-void traverse_tree(StateNode* node,
-                   uint8_t strategy[MAX_STRAT_LEN],
-                   uint8_t idx,
-                   OptimalSolution* optimal_solution);
+OptimalSolution* find_optimal_solution(StateNode* root, Player player_id);
+/*
+    Frees the OptimalSolution pointer.
+    Not sure if this is even needed lol
 
-// Writes the strategy to a string `buf`
+    `opt_sol` (IN/OUT)
+*/
+void free_optimal_solution(OptimalSolution* opt_sol);
+
+/*
+    Writes the solving strategy to a buffer.
+    Example: "1->5->2->6".
+
+    `strategy` -- the strategy to print.
+    `idx` -- index to the last strategy element.
+    `buf` (OUT) -- output buffer
+    `size` -- output buffer size
+*/
 void write_strategy(uint8_t strategy[MAX_STRAT_LEN], uint8_t idx, char* buf, size_t size);
-
-void try_plays(Board* board,
-               Player player_id,
-               uint8_t* holes,
-               uint8_t nholes,
-               TurnOutcome* output);
 
 #endif  // KALAHA_SOLVER_H_

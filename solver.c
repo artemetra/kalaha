@@ -71,6 +71,7 @@ void update_opt_sol(OptimalSolution* opt_sol,
                     StateNode* node,
                     uint8_t strategy[MAX_STRAT_LEN],
                     uint8_t idx) {
+    // If opt_sol is "empty", set it any value
     if (!opt_sol->statenode.is_last) {
         memcpy(&opt_sol->statenode, node, sizeof(StateNode));
         memcpy(opt_sol->strategy, strategy, sizeof(uint8_t) * MAX_STRAT_LEN);
@@ -89,13 +90,28 @@ void update_opt_sol(OptimalSolution* opt_sol,
         upd = node->board_state.p2_home;
     }
 
+    // If the new state has more balls in the home, update
     if (upd > curr) {
         memcpy(&opt_sol->statenode, node, sizeof(StateNode));
         memcpy(opt_sol->strategy, strategy, sizeof(uint8_t) * MAX_STRAT_LEN);
         opt_sol->idx = idx;
+        return;
+    }
+
+    // If the new state has the same solution but in less steps, update
+    if (upd == curr) {
+        if (idx < opt_sol->idx) {
+            memcpy(&opt_sol->statenode, node, sizeof(StateNode));
+            memcpy(opt_sol->strategy, strategy, sizeof(uint8_t) * MAX_STRAT_LEN);
+            opt_sol->idx = idx;
+        }
     }
 }
 
+/*
+    Postorder traversal of the statenode tree, calling `update_opt_sol` on every found
+    "last node".
+*/
 void traverse_tree(StateNode* node,
                    uint8_t strategy[MAX_STRAT_LEN],
                    uint8_t idx,
@@ -111,6 +127,26 @@ void traverse_tree(StateNode* node,
     if (node->is_last) {
         update_opt_sol(opt_sol, node, strategy, idx);
     }
+}
+
+OptimalSolution* find_optimal_solution(StateNode* root, Player player_id) {
+    uint8_t strategy[MAX_STRAT_LEN] = {0};
+
+    OptimalSolution* opt_sol = malloc(sizeof(OptimalSolution));
+    *opt_sol = (OptimalSolution){
+        .player_id = player_id,
+        .idx = 0,
+        .strategy = {0},
+        .statenode = *root,
+    };
+
+    traverse_tree(root, strategy, 0, opt_sol);
+
+    return opt_sol;
+}
+
+void free_optimal_solution(OptimalSolution* opt_sol) {
+    free(opt_sol);
 }
 
 void write_strategy(uint8_t strategy[MAX_STRAT_LEN],
