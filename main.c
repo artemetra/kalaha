@@ -10,9 +10,12 @@
 #include "game.h"
 #include "solver.h"
 
-#define OK 0
+#define INPUT_OK 0
 #define NO_INPUT 1
 #define TOO_LONG 2
+
+#define PVP 1
+#define PVC 2
 
 // Get a line from the user with a prompt.
 // shamelessly stolen from
@@ -34,12 +37,12 @@ static int get_line(char* prmpt, char* buff, size_t sz) {
         extra = 0;
         while (((ch = getchar()) != '\n') && (ch != EOF))
             extra = 1;
-        return (extra == 1) ? TOO_LONG : OK;
+        return (extra == 1) ? TOO_LONG : INPUT_OK;
     }
 
     // Otherwise remove newline and give string back to caller.
     buff[strlen(buff) - 1] = '\0';
-    return OK;
+    return INPUT_OK;
 }
 
 // TODO: make an option to leave (maybe)
@@ -139,6 +142,10 @@ int game_loop(Board* board) {
     }
 }
 
+// TODO: make it nicer, integrate with game_loop?
+/*
+    Main game loop (PvC). Returns the id of the winner `P1` or `P2`, or `DRAW`.
+*/
 int alt_game_loop(Board* board, uint32_t diff_level) {
     Player current_player = P1;
     display_board(board);
@@ -225,6 +232,60 @@ int alt_game_loop(Board* board, uint32_t diff_level) {
     }
 }
 
+int welcoming_prompt() {
+    printf("---Welcome to Kalaha!---\n");
+    printf("Choose mode:\n");
+    printf(" 1) Two players\n");
+    printf(" 2) Single player vs computer\n");
+
+    for (;;) {
+        char buffer[3];  // one digit, \n and \0
+        char query[6];
+        sprintf(query, ">>> ");
+        int err = get_line(query, buffer, 4);
+        if (err) {
+            printf("Invalid input, try again!\n");
+            continue;
+        }
+        int user_input;
+        // includes EOF and failure to match (0)
+        if (sscanf(buffer, "%d", &user_input) <= 0) {
+            printf("Invalid input, try again!\n");
+            continue;
+        }
+        if (user_input != 1 && user_input != 2) {
+            printf("Invalid input, try again!\n");
+            continue;
+        }
+        return user_input;
+    }
+}
+
+uint32_t choose_difficulty() {
+    printf("Choose difficulty level\n");
+    for (;;) {
+        char buffer[6];
+        char query[6];
+        sprintf(query, ">>> ");
+        int err = get_line(query, buffer, 4);
+        if (err) {
+            printf("Invalid input, try again!\n");
+            continue;
+        }
+        int user_input;
+        // includes EOF and failure to match (0)
+        if (sscanf(buffer, "%d", &user_input) <= 0) {
+            printf("Invalid input, try again!\n");
+            continue;
+        }
+        if (user_input <= 0) {
+            printf("Invalid input, try again!\n");
+            continue;
+        }
+        return user_input;
+    }
+}
+
 int main() {
     Board _init_board = {
         {6, 6, 6, 6, 6, 6},  // player2's holes
@@ -234,6 +295,18 @@ int main() {
     };
     Board* board = &_init_board;
     srand(time(NULL) + 1);
-    alt_game_loop(board, 1000);
+
+    int res = welcoming_prompt();
+    if (res == PVP) {
+        printf("Let's begin!\n\n");
+        game_loop(board);
+        return 0;
+    }
+    if (res == PVC) {
+        uint32_t diff_level = choose_difficulty();
+        printf("Let's begin!\n\n");
+        alt_game_loop(board, diff_level);
+    }
+    
     return 0;
 }
