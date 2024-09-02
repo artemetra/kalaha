@@ -91,67 +91,6 @@ uint32_t prompt_user(Board* board, Player player_id) {
     }
 }
 
-// TODO: refactor to make it solver friendly (make another function?)
-/*
-    Main game loop (PvP). Returns the id of the winner `P1` or `P2`, or `DRAW`.
-*/
-int game_loop(Board* board) {
-    Player current_player = P1;
-    display_board(board);
-    uint8_t p1_holes_sum;
-    uint8_t p2_holes_sum;
-    for (;;) {
-        TurnOutcome turn_outcome =
-            make_a_turn(board, prompt_user(board, current_player), current_player);
-        p1_holes_sum = sum(board->p1_holes);
-        p2_holes_sum = sum(board->p2_holes);
-        display_board(board);
-        if (turn_outcome == COMPLETE) {
-            printf("Player %d has finished their turn!\n", current_player + 1);
-            if ((current_player == P1 && p1_holes_sum == 0) ||
-                (current_player == P2 && p2_holes_sum == 0)) {
-                printf("Player %d's holes are empty, game over\n", current_player + 1);
-                break;
-            }
-            current_player = !current_player;
-        } else if (turn_outcome == REPEAT) {
-            printf("Player %d landed their last ball into their home",
-                   current_player + 1);
-            if ((current_player == P1 && p1_holes_sum == 0) ||
-                (current_player == P2 && p2_holes_sum == 0)) {
-                printf(", but their holes are empty, the game is over\n");
-                break;
-            } else {
-                printf("! They get an extra turn.\n");
-            }
-        }
-    }
-
-    uint8_t p1_score = board->p1_home + p2_holes_sum;
-    uint8_t p2_score = board->p2_home + p1_holes_sum;
-
-    printf("\n---RESULTS---\n");
-    printf(
-        "Player 1 has scored %d points (%d in home + %2d of player 2's "
-        "holes)\n",
-        p1_score, board->p1_home, p2_holes_sum);
-    printf(
-        "Player 2 has scored %d points (%d in home + %2d of player 1's "
-        "holes)\n",
-        p2_score, board->p2_home, p1_holes_sum);
-
-    if (p1_score > p2_score) {
-        printf("Player 1 wins! Thanks for playing the game.\n");
-        return P1;
-    } else if (p2_score > p1_score) {
-        printf("Player 2 wins! Thanks for playing the game.\n");
-        return P2;
-    } else {
-        printf("Draw! Thanks for playing the game.\n");
-        return DRAW;
-    }
-}
-
 bool is_win(Board* board) {
     uint32_t p1_holes_sum = sum(board->p1_holes);
     uint32_t p2_holes_sum = sum(board->p2_holes);
@@ -234,26 +173,34 @@ TurnState computer_turn(Board* board,
     return turn_state;
 }
 
-int print_and_return_results(Board* board, uint8_t p1_holes_sum, uint8_t p2_holes_sum) {
+int print_and_return_results(Board* board, uint8_t p1_holes_sum, uint8_t p2_holes_sum, bool is_computer) {
     // The score is personal home + other player's holes
     uint8_t p1_score = board->p1_home + p2_holes_sum;
     uint8_t p2_score = board->p2_home + p1_holes_sum;
 
+    // QUICK HACK! FIXME
+    char p2_name[10];
+    if (is_computer) {
+        memcpy(p2_name, "Computer", 10);
+    } else {
+        memcpy(p2_name, "Player 2", 10);
+    }
+
     printf("\n---RESULTS---\n");
     printf(
-        "Player 1 has scored %d points (%d in home + %2d of Computers's "
+        "Player 1 has scored %d points (%d in home + %2d of %s's "
         "holes)\n",
-        p1_score, board->p1_home, p2_holes_sum);
+        p1_score, board->p1_home, p2_holes_sum, p2_name);
     printf(
-        "Computer has scored %d points (%d in home + %2d of player 1's "
+        "%s has scored %d points (%d in home + %2d of player 1's "
         "holes)\n",
-        p2_score, board->p2_home, p1_holes_sum);
+        p2_name, p2_score, board->p2_home, p1_holes_sum);
 
     if (p1_score > p2_score) {
         printf("Player 1 wins! Thanks for playing the game.\n");
         return P1;
     } else if (p2_score > p1_score) {
-        printf("Computer wins! Thanks for playing the game.\n");
+        printf("%s wins! Thanks for playing the game.\n", p2_name);
         return P2;
     } else {
         printf("Draw! Thanks for playing the game.\n");
@@ -288,7 +235,31 @@ int alt_game_loop(Board* board, uint32_t diff_level) {
             continue;
         }
     }
-    return print_and_return_results(board, p1_holes_sum, p2_holes_sum);
+    return print_and_return_results(board, p1_holes_sum, p2_holes_sum, true);
+}
+
+// TODO: refactor to make it solver friendly (make another function?)
+/*
+    Main game loop (PvP). Returns the id of the winner `P1` or `P2`, or `DRAW`.
+*/
+int game_loop(Board* board) {
+    Player current_player = P1;
+    display_board(board);
+    uint8_t p1_holes_sum;
+    uint8_t p2_holes_sum;
+    TurnState game_result;
+    for (;;) {
+        game_result = player_turn(board, current_player, &p1_holes_sum, &p2_holes_sum);
+        if (game_result.game_outcome == GAME_OVER) {
+            break;
+        } else {
+            if (game_result.turn_outcome == COMPLETE) {
+                current_player = !current_player;
+            }
+            continue;
+        }
+    }
+    return print_and_return_results(board, p1_holes_sum, p2_holes_sum, false);
 }
 
 int welcoming_prompt() {
