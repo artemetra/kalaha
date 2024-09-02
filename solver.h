@@ -9,6 +9,8 @@
 
 #define MAX_STRAT_LEN 100
 
+extern uint64_t n_freed;
+
 /*
     Represents a node of a tree of board states.
 

@@ -45,6 +45,7 @@ typedef struct Board {
 
 /*
     Turn outcomes that are returned from `make_a_turn`.
+    TODO: rename?
 */
 typedef enum TurnOutcome { COMPLETE, REPEAT, INVALID } TurnOutcome;
 

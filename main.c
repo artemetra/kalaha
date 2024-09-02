@@ -17,6 +17,16 @@
 #define PVP 1
 #define PVC 2
 
+typedef bool GameOutcome;
+#define GAME_OVER true
+#define GAME_NEXT false
+
+// TODO: rename
+typedef struct TurnState {
+    TurnOutcome turn_outcome;
+    GameOutcome game_outcome;
+} TurnState;
+
 // Get a line from the user with a prompt.
 // shamelessly stolen from
 // https://stackoverflow.com/questions/4023895/how-do-i-read-a-string-entered-by-the-user-in-c/4023921#4023921
@@ -142,71 +152,90 @@ int game_loop(Board* board) {
     }
 }
 
-// TODO: make it nicer, integrate with game_loop?
-/*
-    Main game loop (PvC). Returns the id of the winner `P1` or `P2`, or `DRAW`.
-*/
-int alt_game_loop(Board* board, uint32_t diff_level) {
-    Player current_player = P1;
+bool is_win(Board* board) {
+    uint32_t p1_holes_sum = sum(board->p1_holes);
+    uint32_t p2_holes_sum = sum(board->p2_holes);
+    return (p1_holes_sum == 0) || (p2_holes_sum == 0);
+}
+
+TurnState player_turn(Board* board,
+                      Player current_player,
+                      uint8_t* p1_holes_sum,
+                      uint8_t* p2_holes_sum) {
+    TurnOutcome turn_outcome =
+        make_a_turn(board, prompt_user(board, current_player), current_player);
+
+    *p1_holes_sum = sum(board->p1_holes);
+    *p2_holes_sum = sum(board->p2_holes);
+
+    TurnState turn_state;
+    turn_state.turn_outcome = turn_outcome;
+    turn_state.game_outcome = GAME_NEXT;  // until changed otherwise
     display_board(board);
-    uint8_t p1_holes_sum;
-    uint8_t p2_holes_sum;
-
-    for (;;) {
-        if (current_player == P1) {
-            TurnOutcome turn_outcome =
-                make_a_turn(board, prompt_user(board, current_player), current_player);
-            p1_holes_sum = sum(board->p1_holes);
-            p2_holes_sum = sum(board->p2_holes);
-            display_board(board);
-            if (turn_outcome == COMPLETE) {
-                printf("Player %d has finished their turn!\n", current_player + 1);
-                if ((current_player == P1 && p1_holes_sum == 0) ||
-                    (current_player == P2 && p2_holes_sum == 0)) {
-                    printf("Player %d's holes are empty, game over\n",
-                           current_player + 1);
-                    break;
-                }
-                current_player = !current_player;
-            } else if (turn_outcome == REPEAT) {
-                printf("Player %d landed their last ball into their home",
-                       current_player + 1);
-                if ((current_player == P1 && p1_holes_sum == 0) ||
-                    (current_player == P2 && p2_holes_sum == 0)) {
-                    printf(", but their holes are empty, the game is over\n");
-                    break;
-                } else {
-                    printf("! They get an extra turn.\n");
-                }
-            }
-        } else {
-            printf("Processing....\n");
-            StateNode* tree;
-            tree = create_statenode(*board, P2, diff_level);
-            OptimalSolution* opt_sol = find_optimal_solution(tree, P2);
-            char buf[300] = {0};
-            write_strategy(opt_sol->strategy, opt_sol->idx, buf);
-            printf("Computers solution: %s\n", buf);
-
-            memcpy(board, &(opt_sol->statenode.board_state), sizeof(Board));
-
-            free_optimal_solution(opt_sol);
-            free_statenodes(tree);
-
-            p1_holes_sum = sum(board->p1_holes);
-            p2_holes_sum = sum(board->p2_holes);
-
-            display_board(board);
-            printf("Computer has finished its turn!\n");
-            if ((current_player == P1 && p1_holes_sum == 0) ||
-                (current_player == P2 && p2_holes_sum == 0)) {
-                printf("Computer's holes are empty!\n");
-                break;
-            }
-            current_player = !current_player;
+    if (turn_outcome == COMPLETE) {
+        printf("Player %d has finished their turn!\n", current_player + 1);
+        if (is_win(board)) {
+            printf("Player %d's holes are empty, game over\n", current_player + 1);
+            turn_state.game_outcome = GAME_OVER;
         }
+    } else if (turn_outcome == REPEAT) {
+        printf("Player %d landed their last ball into their home", current_player + 1);
+        if (is_win(board)) {
+            printf(", but their holes are empty, the game is over\n");
+            turn_state.game_outcome = GAME_OVER;
+        } else {
+            printf("! They get an extra turn.\n");
+        }
+    } else if (turn_outcome == INVALID) {
+        printf("Something has gone TERRIBLY wrong!!!!!!\n");
+        exit(EXIT_FAILURE);
     }
+    return turn_state;
+}
 
+TurnState computer_turn(Board* board,
+                        Player current_player,
+                        uint8_t* p1_holes_sum,
+                        uint8_t* p2_holes_sum,
+                        uint32_t diff_level) {
+    printf("Processing....\n");
+    n_freed = 0;  // for stats
+    StateNode* tree;
+    tree = create_statenode(*board, current_player, diff_level);
+    OptimalSolution* opt_sol = find_optimal_solution(tree, current_player);
+    // should be enough
+    char buf[300] = {0};
+    write_strategy(opt_sol->strategy, opt_sol->idx, buf);
+    printf("Computers solution: %s\n", buf);
+
+    memcpy(board, &(opt_sol->statenode.board_state), sizeof(Board));
+
+    free_optimal_solution(opt_sol);
+    free_statenodes(tree);
+
+    *p1_holes_sum = sum(board->p1_holes);
+    *p2_holes_sum = sum(board->p2_holes);
+
+    display_board(board);
+    //printf("n_freed:%llu\n", n_freed);
+    printf("Computer has finished its turn");
+
+    TurnState turn_state;
+    // the computer will never finish with a repeat
+    turn_state.turn_outcome = COMPLETE;
+    turn_state.game_outcome = GAME_NEXT;
+
+    if (is_win(board)) {
+        printf(", and the game is over.\n");
+        turn_state.game_outcome = GAME_OVER;
+    } else {
+        printf("!\n");
+    }
+    return turn_state;
+}
+
+int print_and_return_results(Board* board, uint8_t p1_holes_sum, uint8_t p2_holes_sum) {
+    // The score is personal home + other player's holes
     uint8_t p1_score = board->p1_home + p2_holes_sum;
     uint8_t p2_score = board->p2_home + p1_holes_sum;
 
@@ -230,6 +259,36 @@ int alt_game_loop(Board* board, uint32_t diff_level) {
         printf("Draw! Thanks for playing the game.\n");
         return DRAW;
     }
+}
+
+// TODO: make it nicer, integrate with game_loop?
+/*
+    Main game loop (PvC). Returns the id of the winner `P1` or `P2`, or `DRAW`.
+*/
+int alt_game_loop(Board* board, uint32_t diff_level) {
+    Player current_player = P1;
+    display_board(board);
+    uint8_t p1_holes_sum;
+    uint8_t p2_holes_sum;
+    TurnState game_result;
+    for (;;) {
+        if (current_player == P1) {
+            game_result =
+                player_turn(board, current_player, &p1_holes_sum, &p2_holes_sum);
+        } else {
+            game_result = computer_turn(board, current_player, &p1_holes_sum,
+                                        &p2_holes_sum, diff_level);
+        }
+        if (game_result.game_outcome == GAME_OVER) {
+            break;
+        } else {
+            if (game_result.turn_outcome == COMPLETE) {
+                current_player = !current_player;
+            }
+            continue;
+        }
+    }
+    return print_and_return_results(board, p1_holes_sum, p2_holes_sum);
 }
 
 int welcoming_prompt() {
@@ -307,6 +366,6 @@ int main() {
         printf("Let's begin!\n\n");
         alt_game_loop(board, diff_level);
     }
-    
+
     return 0;
 }

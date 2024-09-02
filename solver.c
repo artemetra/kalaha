@@ -5,6 +5,8 @@
 #include "game.h"
 #include "solver.h"
 
+uint64_t n_freed;
+
 StateNode* create_statenode(Board board, Player player_id, const uint32_t max_level) {
     StateNode* root = malloc(sizeof(StateNode));
     *root = (StateNode){
@@ -71,6 +73,7 @@ void free_statenodes(StateNode* node) {
             free_statenodes(node->paths[i]);
         }
     }
+    n_freed += sizeof(StateNode);
     free(node);
 }
 
