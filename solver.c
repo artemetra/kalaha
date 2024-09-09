@@ -49,13 +49,13 @@ void grow_statenodes(StateNode* root, Player player_id, uint32_t level) {
         *child = (StateNode){.board_state = board_copy, .is_last = true, .paths = {NULL}};
 
         if (out == REPEAT) {
-            uint8_t(*holes)[6];
+            uint8_t(*pits)[6];
             if (player_id == P1) {
-                holes = &board_copy.p1_holes;
+                pits = &board_copy.p1_pits;
             } else {
-                holes = &board_copy.p2_holes;
+                pits = &board_copy.p2_pits;
             }
-            if (!are_all_zero(*holes)) {
+            if (!are_all_zero(*pits)) {
                 child->is_last = false;
                 grow_statenodes(child, player_id, level - 1);
             }
@@ -100,7 +100,7 @@ void update_opt_sol(OptimalSolution* opt_sol,
         upd = node->board_state.p2_home;
     }
 
-    // If the new state has more balls in the home, update
+    // If the new state has more beads in the home, update
     if (upd > curr) {
         memcpy(&opt_sol->statenode, node, sizeof(StateNode));
         memcpy(opt_sol->strategy, strategy, sizeof(uint8_t) * MAX_STRAT_LEN);

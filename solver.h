@@ -18,7 +18,7 @@ extern uint64_t n_freed;
     `is_last` -- true if the node is last. Should be used instead of checking whether
     every path in `paths` is `NULL`.
     `paths` -- array of 6 pointers to other `StateNode`s, each individually can be `NULL`.
-    Represents the state of the board after picking the hole `idx+1` where `idx` is the
+    Represents the state of the board after picking the pit `idx+1` where `idx` is the
     index used with the array.
 */
 typedef struct StateNode {
@@ -51,7 +51,7 @@ void free_statenodes(StateNode* node);
 
     `statenode` -- resulting statenode from applying the solution. The resulting board
     state can then just be taken from this.
-    `strategy` -- an array representing the sequence of holes picked to get to the final
+    `strategy` -- an array representing the sequence of pits picked to get to the final
     state. The real length of the array is `idx+1`. The unused array space is guaranteed
     to be {0}.
     `idx` -- index to the last element of `strategy`.
@@ -67,7 +67,7 @@ typedef struct OptimalSolution {
 /*
     Returns a pointer to an optimal solution for a given tree for a player.
     The solution is found by traversing the statenode tree and looking for all possible
-    end states and finding the one that has the maximum count of balls in `player_id`s
+    end states and finding the one that has the maximum count of beads in `player_id`s
     home. It does not consider how (possibly) beneficial is the final board state for the
     other player could be. The solution is not guaranteed to be the shortest (TODO?)
 

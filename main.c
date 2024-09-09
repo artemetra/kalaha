@@ -57,12 +57,12 @@ static int get_line(char* prmpt, char* buff, size_t sz) {
 
 // TODO: make an option to leave (maybe)
 /*
-    Prompts a player to choose a hole to play.
+    Prompts a player to choose a pit to play.
 */
 uint32_t prompt_user(Board* board, Player player_id) {
     char buffer[3];  // one digit, \n and \0
     char query[39];
-    sprintf(query, "Player %d, choose hole to play (1-6): ", player_id + 1);
+    sprintf(query, "Player %d, choose pit to play (1-6): ", player_id + 1);
     for (;;) {
         int err = get_line(query, buffer, 4);
 
@@ -76,7 +76,7 @@ uint32_t prompt_user(Board* board, Player player_id) {
             if (sscanf(buffer, "%d", &user_input) > 0) {
                 if (user_input >= 1 && user_input <= 6) {
                     uint32_t converted = convert_index(user_input, player_id);
-                    if (*get_hole(board, converted) > 0)
+                    if (*get_pit(board, converted) > 0)
                         return converted;
                     goto empty;
                 }
@@ -87,25 +87,25 @@ uint32_t prompt_user(Board* board, Player player_id) {
         printf("Invalid input, try again\n");
         continue;
     empty:
-        printf("The chosen hole is empty\n");
+        printf("The chosen pit is empty\n");
     }
 }
 
 bool is_win(Board* board) {
-    uint32_t p1_holes_sum = sum(board->p1_holes);
-    uint32_t p2_holes_sum = sum(board->p2_holes);
-    return (p1_holes_sum == 0) || (p2_holes_sum == 0);
+    uint32_t p1_pits_sum = sum(board->p1_pits);
+    uint32_t p2_pits_sum = sum(board->p2_pits);
+    return (p1_pits_sum == 0) || (p2_pits_sum == 0);
 }
 
 TurnState player_turn(Board* board,
                       Player current_player,
-                      uint8_t* p1_holes_sum,
-                      uint8_t* p2_holes_sum) {
+                      uint8_t* p1_pits_sum,
+                      uint8_t* p2_pits_sum) {
     TurnOutcome turn_outcome =
         make_a_turn(board, prompt_user(board, current_player), current_player);
 
-    *p1_holes_sum = sum(board->p1_holes);
-    *p2_holes_sum = sum(board->p2_holes);
+    *p1_pits_sum = sum(board->p1_pits);
+    *p2_pits_sum = sum(board->p2_pits);
 
     TurnState turn_state;
     turn_state.turn_outcome = turn_outcome;
@@ -114,13 +114,13 @@ TurnState player_turn(Board* board,
     if (turn_outcome == COMPLETE) {
         printf("Player %d has finished their turn!\n", current_player + 1);
         if (is_win(board)) {
-            printf("Player %d's holes are empty, game over\n", current_player + 1);
+            printf("Player %d's pits are empty, game over\n", current_player + 1);
             turn_state.game_outcome = GAME_OVER;
         }
     } else if (turn_outcome == REPEAT) {
-        printf("Player %d landed their last ball into their home", current_player + 1);
+        printf("Player %d landed their last bead into their home", current_player + 1);
         if (is_win(board)) {
-            printf(", but their holes are empty, the game is over\n");
+            printf(", but their pits are empty, the game is over\n");
             turn_state.game_outcome = GAME_OVER;
         } else {
             printf("! They get an extra turn.\n");
@@ -134,8 +134,8 @@ TurnState player_turn(Board* board,
 
 TurnState computer_turn(Board* board,
                         Player current_player,
-                        uint8_t* p1_holes_sum,
-                        uint8_t* p2_holes_sum,
+                        uint8_t* p1_pits_sum,
+                        uint8_t* p2_pits_sum,
                         uint32_t diff_level) {
     printf("Processing....\n");
     n_freed = 0;  // for stats
@@ -152,8 +152,8 @@ TurnState computer_turn(Board* board,
     free_optimal_solution(opt_sol);
     free_statenodes(tree);
 
-    *p1_holes_sum = sum(board->p1_holes);
-    *p2_holes_sum = sum(board->p2_holes);
+    *p1_pits_sum = sum(board->p1_pits);
+    *p2_pits_sum = sum(board->p2_pits);
 
     display_board(board);
     //printf("n_freed:%llu\n", n_freed);
@@ -173,10 +173,10 @@ TurnState computer_turn(Board* board,
     return turn_state;
 }
 
-int print_and_return_results(Board* board, uint8_t p1_holes_sum, uint8_t p2_holes_sum, bool is_computer) {
-    // The score is personal home + other player's holes
-    uint8_t p1_score = board->p1_home + p2_holes_sum;
-    uint8_t p2_score = board->p2_home + p1_holes_sum;
+int print_and_return_results(Board* board, uint8_t p1_pits_sum, uint8_t p2_pits_sum, bool is_computer) {
+    // The score is personal home + other player's pits
+    uint8_t p1_score = board->p1_home + p2_pits_sum;
+    uint8_t p2_score = board->p2_home + p1_pits_sum;
 
     // QUICK HACK! FIXME
     char p2_name[10];
@@ -189,12 +189,12 @@ int print_and_return_results(Board* board, uint8_t p1_holes_sum, uint8_t p2_hole
     printf("\n---RESULTS---\n");
     printf(
         "Player 1 has scored %d points (%d in home + %2d of %s's "
-        "holes)\n",
-        p1_score, board->p1_home, p2_holes_sum, p2_name);
+        "pits)\n",
+        p1_score, board->p1_home, p2_pits_sum, p2_name);
     printf(
         "%s has scored %d points (%d in home + %2d of player 1's "
-        "holes)\n",
-        p2_name, p2_score, board->p2_home, p1_holes_sum);
+        "pits)\n",
+        p2_name, p2_score, board->p2_home, p1_pits_sum);
 
     if (p1_score > p2_score) {
         printf("Player 1 wins! Thanks for playing the game.\n");
@@ -215,16 +215,16 @@ int print_and_return_results(Board* board, uint8_t p1_holes_sum, uint8_t p2_hole
 int alt_game_loop(Board* board, uint32_t diff_level) {
     Player current_player = P1;
     display_board(board);
-    uint8_t p1_holes_sum;
-    uint8_t p2_holes_sum;
+    uint8_t p1_pits_sum;
+    uint8_t p2_pits_sum;
     TurnState game_result;
     for (;;) {
         if (current_player == P1) {
             game_result =
-                player_turn(board, current_player, &p1_holes_sum, &p2_holes_sum);
+                player_turn(board, current_player, &p1_pits_sum, &p2_pits_sum);
         } else {
-            game_result = computer_turn(board, current_player, &p1_holes_sum,
-                                        &p2_holes_sum, diff_level);
+            game_result = computer_turn(board, current_player, &p1_pits_sum,
+                                        &p2_pits_sum, diff_level);
         }
         if (game_result.game_outcome == GAME_OVER) {
             break;
@@ -235,7 +235,7 @@ int alt_game_loop(Board* board, uint32_t diff_level) {
             continue;
         }
     }
-    return print_and_return_results(board, p1_holes_sum, p2_holes_sum, true);
+    return print_and_return_results(board, p1_pits_sum, p2_pits_sum, true);
 }
 
 // TODO: refactor to make it solver friendly (make another function?)
@@ -245,11 +245,11 @@ int alt_game_loop(Board* board, uint32_t diff_level) {
 int game_loop(Board* board) {
     Player current_player = P1;
     display_board(board);
-    uint8_t p1_holes_sum;
-    uint8_t p2_holes_sum;
+    uint8_t p1_pits_sum;
+    uint8_t p2_pits_sum;
     TurnState game_result;
     for (;;) {
-        game_result = player_turn(board, current_player, &p1_holes_sum, &p2_holes_sum);
+        game_result = player_turn(board, current_player, &p1_pits_sum, &p2_pits_sum);
         if (game_result.game_outcome == GAME_OVER) {
             break;
         } else {
@@ -259,7 +259,7 @@ int game_loop(Board* board) {
             continue;
         }
     }
-    return print_and_return_results(board, p1_holes_sum, p2_holes_sum, false);
+    return print_and_return_results(board, p1_pits_sum, p2_pits_sum, false);
 }
 
 int welcoming_prompt() {
@@ -318,9 +318,9 @@ uint32_t choose_difficulty() {
 
 int main() {
     Board _init_board = {
-        {6, 6, 6, 6, 6, 6},  // player2's holes
+        {6, 6, 6, 6, 6, 6},  // player2's pits
         0,                   // player2's home
-        {6, 6, 6, 6, 6, 6},  // player1's holes
+        {6, 6, 6, 6, 6, 6},  // player1's pits
         0                    // player1's home
     };
     Board* board = &_init_board;

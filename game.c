@@ -9,9 +9,9 @@
 const int PLAYER1_HOME = 13;
 const int PLAYER2_HOME = 6;
 const int BOARD_BYTESIZE = 14;
-const char BALL_CHAR[] = "\u25CF";
+const char BEAD_CHAR[] = "\u25CF";
 
-uint8_t* get_hole(Board* board, uint8_t idx) {
+uint8_t* get_pit(Board* board, uint8_t idx) {
     if (idx < 0 || (idx % BOARD_BYTESIZE) > 13) {
         return NULL;
     }
@@ -36,20 +36,20 @@ void display_board(Board* board) {
     tot += sprintf(buf + tot, "|1    |2    |3    |4    |5    |6    |\n");
     tot += sprintf(buf + tot, "|");
     for (uint32_t i = 0; i < 6; i++)
-        tot += sprintf(buf + tot, " %3d%s|", *get_hole(board, i), BALL_CHAR);
+        tot += sprintf(buf + tot, " %3d%s|", *get_pit(board, i), BEAD_CHAR);
     tot += sprintf(buf + tot, "\n");
 
     tot += sprintf(buf + tot, "   ↑              →              ↓   \n");
     tot += sprintf(buf + tot, "|HOME1|                       |HOME2|\n");
     tot += sprintf(buf + tot, "| %3d%s|                       | %3d%s|\n", board->p1_home,
-                   BALL_CHAR, board->p2_home, BALL_CHAR);
+                   BEAD_CHAR, board->p2_home, BEAD_CHAR);
     tot += sprintf(buf + tot, "   ↑              ←              ↓   \n");
 
     tot += sprintf(buf + tot, "|6    |5    |4    |3    |2    |1    |\n");
     tot += sprintf(buf + tot, "|");
     // print in reverse
     for (int i = 12; i > 6; i--)
-        tot += sprintf(buf + tot, " %3d%s|", *get_hole(board, i), BALL_CHAR);
+        tot += sprintf(buf + tot, " %3d%s|", *get_pit(board, i), BEAD_CHAR);
 
     printf("%s\n", buf);
 }
@@ -62,48 +62,48 @@ uint8_t convert_index(uint8_t idx, Player player_id) {
 }
 
 TurnOutcome make_a_turn(Board* board, uint8_t idx, Player player_id) {
-    uint8_t* chosen_hole = get_hole(board, idx);
+    uint8_t* chosen_pit = get_pit(board, idx);
     // careful shortcircuiting
-    if (chosen_hole == NULL || *chosen_hole == 0) {
+    if (chosen_pit == NULL || *chosen_pit == 0) {
         return INVALID;
     }
-    assert(chosen_hole);
-    uint8_t in_hand = *chosen_hole;
-    *chosen_hole = 0;
+    assert(chosen_pit);
+    uint8_t in_hand = *chosen_pit;
+    *chosen_pit = 0;
 
     // defined outside of the loop to have access afterwards
-    uint8_t* hole = NULL;
+    uint8_t* pit = NULL;
 
     while (in_hand) {
         idx++;
         idx %= BOARD_BYTESIZE;
-        hole = get_hole(board, idx);
-        // if the current hole is not current player's home, skip it
-        if ((hole == &(board->p1_home) && player_id == 1) ||
-            (hole == &(board->p2_home) && player_id == 0)) {
+        pit = get_pit(board, idx);
+        // if the current pit is not current player's home, skip it
+        if ((pit == &(board->p1_home) && player_id == 1) ||
+            (pit == &(board->p2_home) && player_id == 0)) {
             continue;
         }
-        (*hole)++;
+        (*pit)++;
         in_hand--;
     }
-    // if the last ball landed in the player's home, the player gets
+    // if the last bead landed in the player's home, the player gets
     // to make another turn
-    if ((hole == &(board->p1_home) && player_id == 0) ||
-        (hole == &(board->p2_home) && player_id == 1)) {
+    if ((pit == &(board->p1_home) && player_id == 0) ||
+        (pit == &(board->p2_home) && player_id == 1)) {
         return REPEAT;
     }
-    assert(hole);
-    if (*hole == 1) {
+    assert(pit);
+    if (*pit == 1) {
         return COMPLETE;
-    } else {  // *hole > 1
-        return make_a_turn(board, idx /*%BOARD_BYTESIZE*/, player_id);
+    } else {  // *pit > 1
+        return make_a_turn(board, idx, player_id);
     }
 }
 
-uint8_t sum(uint8_t holes[6]) {
+uint8_t sum(uint8_t pits[6]) {
     uint8_t total = 0;
     for (size_t i = 0; i < 6; i++)
-        total += holes[i];
+        total += pits[i];
     return total;
 }
 
